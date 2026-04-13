@@ -6,6 +6,7 @@ import AuctionsPage from './pages/AuctionsPage';
 import AdminUsersPage from './pages/AdminUsersPage';
 import AdminCategoriesPage from './pages/AdminCategoriesPage';
 import SearchPage from './pages/SearchPage';
+import CategoriesPage from './pages/CategoriesPage';
 import { useAuth } from './context/useAuth';
 
 
@@ -28,6 +29,7 @@ export default function App() {
         <Route path="/auctions" element={<ProtectedRoute><AuctionsPage /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
         <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
+        <Route path="/categories" element={<ProtectedRoute><CategoriesPage /></ProtectedRoute>} />
         <Route path="/admin/users" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
         <Route path="/admin/categories" element={<AdminRoute><AdminCategoriesPage /></AdminRoute>} />
       </Route>
