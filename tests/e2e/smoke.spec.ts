@@ -12,13 +12,13 @@ test("unauthenticated user is redirected to /login", async ({ page }) => {
 
 test("login form has required fields", async ({ page }) => {
   await page.goto("/login");
-  await expect(page.getByLabel(/email/i)).toBeVisible();
-  await expect(page.getByLabel(/password/i)).toBeVisible();
-  await expect(page.getByRole("button", { name: /login|sign in/i })).toBeVisible();
+  await expect(page.getByPlaceholder(/email/i)).toBeVisible();
+  await expect(page.getByPlaceholder(/password/i)).toBeVisible();
+  await expect(page.getByRole("button", { name: /^login$/i })).toBeVisible();
 });
 
 test("register toggle switches form mode", async ({ page }) => {
   await page.goto("/login");
-  await page.getByText(/register|sign up|create account/i).first().click();
-  await expect(page.getByLabel(/first.?name/i)).toBeVisible();
+  await page.getByRole("button", { name: /^register$/i }).click();
+  await expect(page.getByPlaceholder(/first name/i)).toBeVisible();
 });
