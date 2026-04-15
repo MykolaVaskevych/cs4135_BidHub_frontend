@@ -2,9 +2,9 @@ name: Frontend CI
 
 on:
   pull_request:
-    branches: [development, deploy]
+    branches: [development, main]
   push:
-    branches: [development, deploy]
+    branches: [development, main]
 
 permissions:
   contents: read
