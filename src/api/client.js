@@ -11,6 +11,13 @@ async function request(path, options = {}) {
 
   const body = await res.json().catch(() => null);
 
+  if (res.status === 401) {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = '/login';
+    return;
+  }
+
   if (!res.ok) {
     const err = new Error(body?.message || res.statusText);
     err.status = res.status;
