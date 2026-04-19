@@ -10,11 +10,16 @@ export default function ProfilePage() {
 
   useEffect(() => {
     let cancelled = false;
-    api.get('/accounts/me').then((data) => {
-      if (cancelled) return;
-      setProfile(data);
-      setEdit({ firstName: data.firstName, lastName: data.lastName });
-    });
+    api.get('/accounts/me')
+      .then((data) => {
+        if (cancelled) return;
+        setProfile(data);
+        setEdit({ firstName: data.firstName, lastName: data.lastName });
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setError(err.message);
+      });
     return () => { cancelled = true; };
   }, []);
 
@@ -38,7 +43,8 @@ export default function ProfilePage() {
     } catch (err) { setError(err.body?.message || err.message); }
   };
 
-  if (!profile) return <p>Loading...</p>;
+  if (!profile && !error) return <p>Loading...</p>;
+  if (!profile) return <p style={{ color: 'red' }}>{error}</p>;
 
   return (
     <div>
