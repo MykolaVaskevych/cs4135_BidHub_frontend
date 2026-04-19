@@ -40,6 +40,7 @@ export default function LoginPage() {
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         <input type="email" placeholder="Email" value={form.email} onChange={set('email')} required />
         <input type="password" placeholder="Password" value={form.password} onChange={set('password')} required />
+        {isRegister && <small style={{ color: '#666', marginTop: -4 }}>Min 8 chars, must include uppercase, lowercase, digit, and special character (e.g. Password1!)</small>}
         {isRegister && (
           <>
             <input placeholder="First Name" value={form.firstName} onChange={set('firstName')} required />
