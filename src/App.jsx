@@ -10,6 +10,9 @@ import DeliveryPage from './pages/DeliveryPage';
 import AdminPage from './pages/AdminPage';
 import SearchPage from './pages/SearchPage';
 import CategoriesPage from './pages/CategoriesPage';
+import WalletPage from './pages/WalletPage';
+import NotificationsPage from './pages/NotificationsPage';
+import BuyerDashboardPage from './pages/BuyerDashboardPage';
 import { useAuth } from './context/useAuth';
 
 
@@ -42,6 +45,9 @@ export default function App() {
         <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
         <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
         <Route path="/categories" element={<ProtectedRoute><CategoriesPage /></ProtectedRoute>} />
+        <Route path="/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
+        <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+        <Route path="/dashboard" element={<ProtectedRoute><BuyerDashboardPage /></ProtectedRoute>} />
         <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
       </Route>
     </Routes>

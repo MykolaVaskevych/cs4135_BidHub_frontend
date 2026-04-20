@@ -15,6 +15,8 @@ export default function SellerPage() {
   const [listingForm, setListingForm] = useState({ title: '', description: '', categoryId: '', photos: '' });
   const [createdListing, setCreatedListing] = useState(null);
   const [auctionForm, setAuctionForm] = useState({ startingPrice: '', reservePrice: '', buyNowPrice: '', durationMs: '', endPreview: '' });
+  const [editingAuction, setEditingAuction] = useState(null);
+  const [editForm, setEditForm] = useState({ title: '', description: '', photos: '' });
 
   const reload = () => setReloadKey((k) => k + 1);
 
@@ -97,6 +99,35 @@ export default function SellerPage() {
   const lf = (field) => (e) => setListingForm({ ...listingForm, [field]: e.target.value });
   const af = (field) => (e) => setAuctionForm({ ...auctionForm, [field]: e.target.value });
 
+  const startEdit = async (auction) => {
+    setMsg(''); setError('');
+    try {
+      const listing = await api.get(`/auctions/listings/${auction.listingId}`);
+      setEditingAuction(auction);
+      setEditForm({
+        title: listing.title ?? '',
+        description: listing.description ?? '',
+        photos: (listing.photos ?? []).join(', '),
+      });
+    } catch (err) { setError(err.body?.message || err.message); }
+  };
+
+  const handleEditListing = async (e) => {
+    e.preventDefault();
+    setMsg(''); setError('');
+    try {
+      const photos = editForm.photos.split(',').map((s) => s.trim()).filter(Boolean);
+      await api.put(`/auctions/listings/${editingAuction.listingId}`, {
+        title: editForm.title,
+        description: editForm.description,
+        photos: photos.length ? photos : undefined,
+      });
+      setMsg('Listing updated.');
+      setEditingAuction(null);
+      reload();
+    } catch (err) { setError(err.body?.message || err.message); }
+  };
+
   return (
     <div>
       <h2>My Listings</h2>
@@ -162,6 +193,24 @@ export default function SellerPage() {
         </>
       )}
 
+      {editingAuction && (
+        <div style={{ border: '1px solid #ddd', borderRadius: 8, padding: '16px 20px', marginBottom: 24, background: '#fafafa' }}>
+          <h3>Edit Listing</h3>
+          <form onSubmit={handleEditListing} style={{ display: 'flex', flexDirection: 'column', gap: 8, maxWidth: 480 }}>
+            <input placeholder="Title" value={editForm.title}
+              onChange={(e) => setEditForm({ ...editForm, title: e.target.value })} required />
+            <textarea placeholder="Description" value={editForm.description}
+              onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} rows={3} />
+            <input placeholder="Photo URLs (comma-separated)" value={editForm.photos}
+              onChange={(e) => setEditForm({ ...editForm, photos: e.target.value })} />
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button type="submit">Save</button>
+              <button type="button" onClick={() => setEditingAuction(null)}>Cancel</button>
+            </div>
+          </form>
+        </div>
+      )}
+
       <h3>My Auctions</h3>
       {myAuctions.length === 0 ? (
         <p>No auctions yet.</p>
@@ -174,18 +223,25 @@ export default function SellerPage() {
               <th>Bids</th>
               <th>Status</th>
               <th>Ends</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {myAuctions.map((a) => (
-              <tr key={a.auctionId}
-                style={{ borderBottom: '1px solid #eee', cursor: 'pointer' }}
-                onClick={() => navigate(`/auctions/${a.auctionId}`)}>
-                <td style={{ fontFamily: 'monospace', fontSize: 12 }}>{a.auctionId.slice(0, 8)}…</td>
+              <tr key={a.auctionId} style={{ borderBottom: '1px solid #eee' }}>
+                <td style={{ fontFamily: 'monospace', fontSize: 12, cursor: 'pointer' }}
+                  onClick={() => navigate(`/auctions/${a.auctionId}`)}>
+                  {a.auctionId.slice(0, 8)}…
+                </td>
                 <td>{a.currentPrice?.amount} {a.currentPrice?.currency}</td>
                 <td>{a.bidCount}</td>
                 <td>{a.status}</td>
                 <td>{new Date(a.endTime).toLocaleString()}</td>
+                <td>
+                  {(a.status === 'ACTIVE' || a.status === 'ENDED') && (
+                    <button onClick={() => startEdit(a)} style={{ fontSize: 12 }}>Edit</button>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>

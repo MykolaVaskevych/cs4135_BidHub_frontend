@@ -17,6 +17,8 @@ export default function AdminDashboardPage() {
   if (!summary) return <p style={{ color: 'red' }}>{error}</p>;
 
   const rows = [
+    ['Total Users', summary.totalUsers],
+    ['Active Auctions', summary.activeAuctions],
     ['Active Categories', summary.activeCategories],
     ['Total Categories', summary.totalCategories],
     ['Pending Reports', summary.pendingReports],

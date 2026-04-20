@@ -14,6 +14,7 @@ export default function AuctionDetailPage() {
   const [defaultAddress, setDefaultAddress] = useState(null);
   const [timeLeft, setTimeLeft] = useState('');
   const [bidAmount, setBidAmount] = useState('');
+  const [bids, setBids] = useState([]);
   const [msg, setMsg] = useState('');
   const [error, setError] = useState('');
   const [reloadKey, setReloadKey] = useState(0);
@@ -68,6 +69,11 @@ export default function AuctionDetailPage() {
         setHasAddress(!Array.isArray(addrs) || addrs.length > 0);
         setDefaultAddress(Array.isArray(addrs) ? (addrs.find((a) => a.isDefault) ?? addrs[0] ?? null) : null);
         if (seller) setSellerName(`${seller.firstName} ${seller.lastName}`.trim());
+        return api.get(`/auctions/${id}/bids`).catch(() => []);
+      })
+      .then((bidList) => {
+        if (cancelled || !bidList) return;
+        setBids(bidList ?? []);
       })
       .catch((err) => { if (!cancelled) setError(err.body?.detail || err.body?.message || err.message); });
     return () => { cancelled = true; };
@@ -238,6 +244,39 @@ export default function AuctionDetailPage() {
             </p>
           )}
           <button onClick={handleBuyNow}>Buy Now — {auction.buyNowPrice.amount} {auction.buyNowPrice.currency}</button>
+        </div>
+      )}
+
+      {bids.length > 0 && (
+        <div style={{ marginTop: 24 }}>
+          <h3>Bid History ({bids.length})</h3>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ borderBottom: '2px solid #ddd', textAlign: 'left' }}>
+                <th style={{ padding: '4px 8px' }}>#</th>
+                <th style={{ padding: '4px 8px' }}>Amount</th>
+                <th style={{ padding: '4px 8px' }}>Time</th>
+                <th style={{ padding: '4px 8px' }}>Winner</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bids.map((b, i) => (
+                <tr key={b.bidId} style={{ borderBottom: '1px solid #eee' }}>
+                  <td style={{ padding: '4px 8px', fontSize: 12, color: '#888' }}>{i + 1}</td>
+                  <td style={{ padding: '4px 8px', fontWeight: b.isWinning ? 'bold' : 'normal' }}>
+                    {b.amount?.amount} {b.amount?.currency}
+                  </td>
+                  <td style={{ padding: '4px 8px', fontSize: 12, color: '#555' }}>
+                    {b.placedAt ? new Date(b.placedAt).toLocaleString() : '—'}
+                  </td>
+                  <td style={{ padding: '4px 8px', fontSize: 12 }}>
+                    {b.isWinning ? <span style={{ color: 'green' }}>★</span> : ''}
+                    {b.bidderId === user?.userId ? ' (you)' : ''}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>
