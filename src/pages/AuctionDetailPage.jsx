@@ -8,6 +8,7 @@ export default function AuctionDetailPage() {
   const { user } = useAuth();
   const [auction, setAuction] = useState(null);
   const [listing, setListing] = useState(null);
+  const [sellerName, setSellerName] = useState('');
   const [watched, setWatched] = useState(false);
   const [hasAddress, setHasAddress] = useState(true);
   const [defaultAddress, setDefaultAddress] = useState(null);
@@ -19,6 +20,13 @@ export default function AuctionDetailPage() {
   const timerRef = useRef(null);
 
   const reload = () => setReloadKey((k) => k + 1);
+
+  // Poll every 3s after timer ends until the backend actually closes the auction
+  useEffect(() => {
+    if (timeLeft !== 'Ended' || auction?.status !== 'ACTIVE') return;
+    const poll = setInterval(reload, 3000);
+    return () => clearInterval(poll);
+  }, [timeLeft, auction?.status]);
 
   useEffect(() => {
     if (!auction?.endTime || auction.status !== 'ACTIVE') {
@@ -49,15 +57,17 @@ export default function AuctionDetailPage() {
           api.get(`/auctions/listings/${a.listingId}`),
           api.get('/auctions/watchlists/me'),
           api.get('/accounts/me/addresses').catch(() => null),
+          api.get(`/accounts/${a.sellerId}`).catch(() => null),
         ]);
       })
       .then((results) => {
         if (!results || cancelled) return;
-        const [lst, wl, addrs] = results;
+        const [lst, wl, addrs, seller] = results;
         setListing(lst);
         setWatched(wl?.watchedAuctionIds?.includes(id));
         setHasAddress(!Array.isArray(addrs) || addrs.length > 0);
         setDefaultAddress(Array.isArray(addrs) ? (addrs.find((a) => a.isDefault) ?? addrs[0] ?? null) : null);
+        if (seller) setSellerName(`${seller.firstName} ${seller.lastName}`.trim());
       })
       .catch((err) => { if (!cancelled) setError(err.body?.detail || err.body?.message || err.message); });
     return () => { cancelled = true; };
@@ -89,6 +99,16 @@ export default function AuctionDetailPage() {
       await api.post(`/auctions/${id}/cancel`);
       setMsg('Auction cancelled');
       reload();
+    } catch (err) { setError(err.body?.detail || err.body?.message || err.message); }
+  };
+
+  const handleReport = async () => {
+    const reason = window.prompt('Reason for reporting this listing:');
+    if (!reason) return;
+    setMsg(''); setError('');
+    try {
+      await api.post('/admin/reports', { targetId: auction.sellerId, reason });
+      setMsg('Report submitted. An admin will review it.');
     } catch (err) { setError(err.body?.detail || err.body?.message || err.message); }
   };
 
@@ -131,6 +151,7 @@ export default function AuctionDetailPage() {
 
       <table style={{ marginBottom: 16 }}>
         <tbody>
+          <tr><td><strong>Seller</strong></td><td>{sellerName || '—'}</td></tr>
           <tr><td><strong>Status</strong></td><td>{auction.status}</td></tr>
           <tr><td><strong>Current Price</strong></td><td>{auction.currentPrice?.amount} {auction.currentPrice?.currency}</td></tr>
           <tr><td><strong>Starting Price</strong></td><td>{auction.startingPrice?.amount} {auction.startingPrice?.currency}</td></tr>
@@ -142,7 +163,7 @@ export default function AuctionDetailPage() {
               <td style={{ fontFamily: 'monospace', fontSize: 12 }}>
                 {auction.leadingBidderId === user?.userId
                   ? <span style={{ color: 'green', fontWeight: 'bold' }}>You are winning!</span>
-                  : `${auction.leadingBidderId.slice(0, 8)}…`}
+                  : <span>Someone else</span>}
               </td>
             </tr>
           )}
@@ -166,6 +187,11 @@ export default function AuctionDetailPage() {
         )}
         {isActive && isOwner && auction.bidCount === 0 && (
           <button onClick={handleCancel} style={{ background: '#fee', color: '#c00' }}>Cancel Auction</button>
+        )}
+        {!isOwner && (
+          <button onClick={handleReport} style={{ background: 'none', color: '#888', fontSize: 12, border: '1px solid #ccc' }}>
+            Report Listing
+          </button>
         )}
       </div>
 

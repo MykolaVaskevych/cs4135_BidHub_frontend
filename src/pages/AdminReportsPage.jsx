@@ -31,6 +31,11 @@ export default function AdminReportsPage() {
   return (
     <div>
       <h2>Admin: Reports</h2>
+      <p style={{ fontSize: 13, color: '#555', marginBottom: 12 }}>
+        User-submitted complaints about other users or listings. Any logged-in user can submit a report
+        (e.g. from an auction page). <strong>Resolve</strong> to acknowledge; <strong>Dismiss</strong> to reject.
+        Only PENDING reports show action buttons.
+      </p>
       {msg && <p style={{ color: 'green' }}>{msg}</p>}
       {error && <p style={{ color: 'red' }}>{error}</p>}
 

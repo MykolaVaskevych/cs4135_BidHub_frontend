@@ -13,6 +13,22 @@ const STATUS_LABEL = {
   CANCELLED: 'Cancelled',
 };
 
+const NEXT_STEP = {
+  PENDING:    'Waiting for a driver to pick up this job.',
+  ASSIGNED:   { SELLER: 'Driver assigned — confirm you handed over the item.', DELIVERY_DRIVER: 'Waiting for seller to confirm handover.', BUYER: 'Driver assigned, awaiting collection.' },
+  IN_TRANSIT: { DELIVERY_DRIVER: 'Item collected — mark as delivered once dropped off.', SELLER: 'Item in transit.', BUYER: 'Item on its way to you.' },
+  DELIVERED:  { BUYER: 'Driver says it\'s delivered — confirm receipt or raise a dispute.', SELLER: 'Delivered, awaiting buyer confirmation.', DELIVERY_DRIVER: 'Awaiting buyer confirmation.' },
+  CONFIRMED:  'Delivery complete. Escrow released.',
+  DISPUTED:   'Dispute in progress.',
+  CANCELLED:  'Job cancelled.',
+};
+
+function nextStepHint(status, role) {
+  const entry = NEXT_STEP[status];
+  if (!entry) return null;
+  return typeof entry === 'string' ? entry : (entry[role] ?? null);
+}
+
 function JobTable({ jobs, onAction, role }) {
   if (jobs.length === 0) return <p style={{ color: '#888' }}>None.</p>;
   return (
@@ -21,7 +37,7 @@ function JobTable({ jobs, onAction, role }) {
         <tr style={{ borderBottom: '2px solid #ddd', textAlign: 'left' }}>
           <th>Job ID</th>
           <th>Status</th>
-          <th>Created</th>
+          <th>Next step</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -30,13 +46,13 @@ function JobTable({ jobs, onAction, role }) {
           <tr key={j.deliveryJobId} style={{ borderBottom: '1px solid #eee' }}>
             <td style={{ fontFamily: 'monospace', fontSize: 12 }}>{j.deliveryJobId?.slice(0, 8)}…</td>
             <td>{STATUS_LABEL[j.status] ?? j.status}</td>
-            <td>{j.createdAt ? new Date(j.createdAt).toLocaleDateString() : '—'}</td>
+            <td style={{ fontSize: 12, color: '#555', maxWidth: 220 }}>{nextStepHint(j.status, role) ?? '—'}</td>
             <td style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
               {role === 'DELIVERY_DRIVER' && j.status === 'IN_TRANSIT' && (
                 <button onClick={() => onAction(j.deliveryJobId, 'deliver')}>Mark Delivered</button>
               )}
               {role === 'SELLER' && j.status === 'ASSIGNED' && (
-                <button onClick={() => onAction(j.deliveryJobId, 'collect')}>Confirm Collection</button>
+                <button onClick={() => onAction(j.deliveryJobId, 'collect')}>Confirm Handover</button>
               )}
               {role === 'BUYER' && j.status === 'DELIVERED' && (
                 <>

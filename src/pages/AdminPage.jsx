@@ -3,8 +3,10 @@ import AdminDashboardPage from './AdminDashboardPage';
 import AdminUsersPage from './AdminUsersPage';
 import AdminCategoriesPage from './AdminCategoriesPage';
 import AdminReportsPage from './AdminReportsPage';
+import AdminAuctionsPage from './AdminAuctionsPage';
+import AdminDeliveriesPage from './AdminDeliveriesPage';
 
-const TABS = ['Dashboard', 'Users', 'Categories', 'Reports'];
+const TABS = ['Dashboard', 'Users', 'Categories', 'Reports', 'Auctions', 'Deliveries'];
 
 export default function AdminPage() {
   const [tab, setTab] = useState('Dashboard');
@@ -31,6 +33,8 @@ export default function AdminPage() {
       {tab === 'Users'      && <AdminUsersPage />}
       {tab === 'Categories' && <AdminCategoriesPage />}
       {tab === 'Reports'    && <AdminReportsPage />}
+      {tab === 'Auctions'    && <AdminAuctionsPage />}
+      {tab === 'Deliveries'  && <AdminDeliveriesPage />}
     </div>
   );
 }

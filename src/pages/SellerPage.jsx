@@ -28,9 +28,9 @@ export default function SellerPage() {
 
   useEffect(() => {
     let cancelled = false;
-    api.get('/auctions/search')
+    api.get('/auctions/my-sales')
       .then((data) => {
-        if (!cancelled) setMyAuctions((data ?? []).filter((a) => a.sellerId === user?.userId));
+        if (!cancelled) setMyAuctions(data ?? []);
       })
       .catch(() => {});
     return () => { cancelled = true; };
