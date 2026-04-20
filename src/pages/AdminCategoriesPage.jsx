@@ -15,7 +15,7 @@ export default function AdminCategoriesPage() {
     let cancelled = false;
     api.get('/admin/categories')
       .then((data) => { if (!cancelled) setCategories(data); })
-      .catch((err) => { if (!cancelled) setError(err.body?.message || err.message); });
+      .catch((err) => { if (!cancelled) setError(err.body?.detail || err.body?.message || err.message); });
     return () => { cancelled = true; };
   }, [reloadKey]);
 
@@ -33,16 +33,35 @@ export default function AdminCategoriesPage() {
       setForm({ name: '', description: '' });
       setEditId(null);
       reload();
-    } catch (err) { setError(err.body?.message || err.message); }
+    } catch (err) { setError(err.body?.detail || err.body?.message || err.message); }
   }, [editId, form]);
 
-  const handleDelete = useCallback(async (id) => {
+  const handleDeactivate = useCallback(async (id) => {
     setMsg(''); setError('');
     try {
       await api.del(`/admin/categories/${id}`);
       setMsg('Category deactivated');
       reload();
-    } catch (err) { setError(err.body?.message || err.message); }
+    } catch (err) { setError(err.body?.detail || err.body?.message || err.message); }
+  }, []);
+
+  const handleActivate = useCallback(async (id) => {
+    setMsg(''); setError('');
+    try {
+      await api.put(`/admin/categories/${id}/activate`);
+      setMsg('Category activated');
+      reload();
+    } catch (err) { setError(err.body?.detail || err.body?.message || err.message); }
+  }, []);
+
+  const handleDelete = useCallback(async (id) => {
+    if (!window.confirm('Permanently delete this category? This cannot be undone.')) return;
+    setMsg(''); setError('');
+    try {
+      await api.del(`/admin/categories/${id}/hard`);
+      setMsg('Category deleted');
+      reload();
+    } catch (err) { setError(err.body?.detail || err.body?.message || err.message); }
   }, []);
 
   const startEdit = (cat) => {
@@ -73,19 +92,29 @@ export default function AdminCategoriesPage() {
             <tr style={{ borderBottom: '2px solid #ddd', textAlign: 'left' }}>
               <th>Name</th>
               <th>Description</th>
-              <th>Active</th>
+              <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {categories.map((c) => (
-              <tr key={c.categoryId} style={{ borderBottom: '1px solid #eee' }}>
+              <tr key={c.categoryId} style={{ borderBottom: '1px solid #eee', opacity: c.isActive ? 1 : 0.5 }}>
                 <td>{c.name}</td>
                 <td>{c.description}</td>
-                <td>{c.isActive ? 'Yes' : 'No'}</td>
+                <td style={{ color: c.isActive ? 'green' : '#999', fontWeight: 'bold' }}>
+                  {c.isActive ? 'Active' : 'Inactive'}
+                </td>
                 <td style={{ display: 'flex', gap: 4 }}>
                   <button onClick={() => startEdit(c)}>Edit</button>
-                  {c.isActive && <button onClick={() => handleDelete(c.categoryId)}>Deactivate</button>}
+                  {c.isActive
+                    ? <button onClick={() => handleDeactivate(c.categoryId)}>Deactivate</button>
+                    : <button onClick={() => handleActivate(c.categoryId)}>Activate</button>
+                  }
+                  <button
+                    onClick={() => handleDelete(c.categoryId)}
+                    style={{ background: '#fee', color: '#c00', border: '1px solid #f88' }}>
+                    Delete
+                  </button>
                 </td>
               </tr>
             ))}

@@ -19,7 +19,7 @@ async function request(path, options = {}) {
   }
 
   if (!res.ok) {
-    const err = new Error(body?.message || res.statusText);
+    const err = new Error(body?.detail || body?.message || res.statusText);
     err.status = res.status;
     err.body = body;
     throw err;

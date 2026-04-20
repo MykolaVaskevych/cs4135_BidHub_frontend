@@ -2,7 +2,7 @@ import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 
 export default function Layout() {
-  const { user, logout, isAdmin } = useAuth();
+  const { user, logout, isAdmin, isSeller } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -17,9 +17,11 @@ export default function Layout() {
         {user ? (
           <>
             <Link to="/auctions">Auctions</Link>
+            <Link to="/watchlist">Watchlist</Link>
+            {isSeller && <Link to="/seller">My Listings</Link>}
+            <Link to="/deliveries">Deliveries</Link>
             <Link to="/profile">Profile</Link>
-            {isAdmin && <Link to="/admin/users">Admin: Users</Link>}
-            {isAdmin && <Link to="/admin/categories">Admin: Categories</Link>}
+            {isAdmin && <Link to="/admin">Admin</Link>}
             <span style={{ marginLeft: 'auto', fontSize: 14 }}>{user.email} ({user.role})</span>
             <button onClick={handleLogout}>Logout</button>
           </>
