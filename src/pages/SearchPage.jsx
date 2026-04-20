@@ -1,15 +1,29 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { api } from '../api/client';
 
 export default function SearchPage() {
+  const [searchParams] = useSearchParams();
   const [listings, setListings] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(() => searchParams.get('q') ?? '');
   const [categoryId, setCategoryId] = useState('');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
   const [error, setError] = useState('');
-  const [reloadKey, setReloadKey] = useState(0);
+  const [reloadKey, setReloadKey] = useState(() => searchParams.get('q') ? 1 : 0);
+
+  // React "update during render" pattern — syncs query + triggers search when
+  // the navbar navigates to /search?q=... without going through an effect.
+  const [seenUrlQ, setSeenUrlQ] = useState(() => searchParams.get('q') ?? '');
+  const currentUrlQ = searchParams.get('q') ?? '';
+  if (currentUrlQ !== seenUrlQ) {
+    setSeenUrlQ(currentUrlQ);
+    if (currentUrlQ) {
+      setQuery(currentUrlQ);
+      setReloadKey((k) => k + 1);
+    }
+  }
 
   const doSearch = () => setReloadKey((k) => k + 1);
 
@@ -32,7 +46,7 @@ export default function SearchPage() {
       .then((data) => { if (!cancelled) setListings(data.content || []); })
       .catch((err) => { if (!cancelled) setError(err.body?.message || err.message); });
     return () => { cancelled = true; };
-  }, [reloadKey]);
+  }, [reloadKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div>

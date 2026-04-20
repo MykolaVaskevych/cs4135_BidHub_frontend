@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { api } from '../api/client';
 
 const STATUS_COLOR = {
@@ -13,7 +13,11 @@ const STATUS_COLOR = {
 
 export default function AdminAuctionsPage() {
   const [auctions, setAuctions] = useState([]);
+  const [msg, setMsg] = useState('');
   const [error, setError] = useState('');
+  const [reloadKey, setReloadKey] = useState(0);
+
+  const reload = () => setReloadKey((k) => k + 1);
 
   useEffect(() => {
     let cancelled = false;
@@ -21,13 +25,23 @@ export default function AdminAuctionsPage() {
       .then((data) => { if (!cancelled) setAuctions(data ?? []); })
       .catch((err) => { if (!cancelled) setError(err.body?.message || err.message); });
     return () => { cancelled = true; };
-  }, []);
+  }, [reloadKey]);
 
-  if (error) return <p style={{ color: 'red' }}>{error}</p>;
+  const handleRemove = useCallback(async (auctionId) => {
+    if (!window.confirm('Remove this auction?')) return;
+    setMsg(''); setError('');
+    try {
+      await api.post(`/auctions/${auctionId}/remove`);
+      setMsg('Auction removed.');
+      reload();
+    } catch (err) { setError(err.body?.message || err.message); }
+  }, []);
 
   return (
     <div>
       <h3>All Auctions ({auctions.length})</h3>
+      {msg && <p style={{ color: 'green' }}>{msg}</p>}
+      {error && <p style={{ color: 'red' }}>{error}</p>}
       {auctions.length === 0 ? <p style={{ color: '#888' }}>No auctions yet.</p> : (
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
@@ -37,6 +51,7 @@ export default function AdminAuctionsPage() {
               <th style={{ padding: '6px 8px' }}>Current Price</th>
               <th style={{ padding: '6px 8px' }}>Bids</th>
               <th style={{ padding: '6px 8px' }}>Ends</th>
+              <th style={{ padding: '6px 8px' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -51,6 +66,14 @@ export default function AdminAuctionsPage() {
                 <td style={{ padding: '6px 8px' }}>{a.currentPrice?.amount} {a.currentPrice?.currency}</td>
                 <td style={{ padding: '6px 8px' }}>{a.bidCount}</td>
                 <td style={{ padding: '6px 8px', fontSize: 12 }}>{new Date(a.endTime).toLocaleString()}</td>
+                <td style={{ padding: '6px 8px' }}>
+                  {a.status !== 'REMOVED' && (
+                    <button onClick={() => handleRemove(a.auctionId)}
+                      style={{ fontSize: 12, background: '#fee', color: '#c00', border: '1px solid #fcc', padding: '2px 8px' }}>
+                      Remove
+                    </button>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
