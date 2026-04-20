@@ -43,7 +43,7 @@ export default function WalletPage() {
       <div style={{ background: '#f6f8fa', border: '1px solid #ddd', borderRadius: 8, padding: '20px 24px', marginBottom: 24 }}>
         <div style={{ fontSize: 14, color: '#555', marginBottom: 4 }}>Available Balance</div>
         <div style={{ fontSize: 32, fontWeight: 'bold' }}>
-          {wallet ? `€${wallet.balance} ${wallet.currency}` : '—'}
+          {wallet ? `€${wallet.balance}` : '—'}
         </div>
       </div>
 
@@ -79,7 +79,7 @@ export default function WalletPage() {
                 <td style={{ padding: '6px 8px', fontSize: 13, color: '#555' }}>{tx.description}</td>
                 <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 'bold',
                   color: tx.amount >= 0 ? '#1a7f37' : '#c00' }}>
-                  {tx.amount >= 0 ? '+' : ''}€{tx.amount}
+                  {tx.amount >= 0 ? `+€${tx.amount}` : `-€${Math.abs(tx.amount)}`}
                 </td>
               </tr>
             ))}

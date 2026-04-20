@@ -1,7 +1,36 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../api/client';
 import { useAuth } from '../context/useAuth';
+
+function AuctionRow({ a, user, navigate }) {
+  return (
+    <tr style={{ borderBottom: '1px solid #eee', cursor: 'pointer' }}
+      onClick={() => navigate(`/auctions/${a.auctionId}`)}>
+      <td style={{ padding: '6px 8px', fontFamily: 'monospace', fontSize: 12 }}>{a.auctionId?.slice(0, 8)}…</td>
+      <td style={{ padding: '6px 8px' }}>{a.currentPrice?.amount} {a.currentPrice?.currency}</td>
+      <td style={{ padding: '6px 8px' }}>{a.bidCount}</td>
+      <td style={{ padding: '6px 8px', fontSize: 12 }}>
+        {a.leadingBidderId === user?.userId
+          ? <span style={{ color: 'green', fontWeight: 'bold' }}>Winning</span>
+          : <span style={{ color: '#c00' }}>Outbid</span>}
+      </td>
+      <td style={{ padding: '6px 8px', fontSize: 12 }}>{new Date(a.endTime).toLocaleString()}</td>
+    </tr>
+  );
+}
+
+function SoldRow({ a, navigate }) {
+  return (
+    <tr style={{ borderBottom: '1px solid #eee', cursor: 'pointer' }}
+      onClick={() => navigate(`/auctions/${a.auctionId}`)}>
+      <td style={{ padding: '6px 8px', fontFamily: 'monospace', fontSize: 12 }}>{a.auctionId?.slice(0, 8)}…</td>
+      <td style={{ padding: '6px 8px' }}>{a.currentPrice?.amount} {a.currentPrice?.currency}</td>
+      <td style={{ padding: '6px 8px', fontSize: 12, color: '#0969da', fontWeight: 'bold' }}>{a.status}</td>
+      <td style={{ padding: '6px 8px', fontSize: 12 }}>{new Date(a.endTime).toLocaleString()}</td>
+    </tr>
+  );
+}
 
 export default function BuyerDashboardPage() {
   const { user } = useAuth();
@@ -24,32 +53,12 @@ export default function BuyerDashboardPage() {
   }, [user?.userId]);
 
   const active = auctions.filter((a) => a.status === 'ACTIVE');
-  const won = auctions.filter((a) => a.status === 'SOLD' || a.status === 'COMPLETED');
-  const other = auctions.filter((a) => !['ACTIVE', 'SOLD', 'COMPLETED'].includes(a.status));
-
-  const AuctionRow = ({ a }) => (
-    <tr key={a.auctionId} style={{ borderBottom: '1px solid #eee', cursor: 'pointer' }}
-      onClick={() => navigate(`/auctions/${a.auctionId}`)}>
-      <td style={{ padding: '6px 8px', fontFamily: 'monospace', fontSize: 12 }}>{a.auctionId?.slice(0, 8)}…</td>
-      <td style={{ padding: '6px 8px' }}>{a.currentPrice?.amount} {a.currentPrice?.currency}</td>
-      <td style={{ padding: '6px 8px' }}>{a.bidCount}</td>
-      <td style={{ padding: '6px 8px', fontSize: 12 }}>
-        {a.leadingBidderId === user?.userId
-          ? <span style={{ color: 'green', fontWeight: 'bold' }}>Winning</span>
-          : <span style={{ color: '#c00' }}>Outbid</span>}
-      </td>
-      <td style={{ padding: '6px 8px', fontSize: 12 }}>{new Date(a.endTime).toLocaleString()}</td>
-    </tr>
+  const won = auctions.filter((a) =>
+    (a.status === 'SOLD' || a.status === 'COMPLETED') && a.leadingBidderId === user?.userId
   );
-
-  const SoldRow = ({ a }) => (
-    <tr key={a.auctionId} style={{ borderBottom: '1px solid #eee', cursor: 'pointer' }}
-      onClick={() => navigate(`/auctions/${a.auctionId}`)}>
-      <td style={{ padding: '6px 8px', fontFamily: 'monospace', fontSize: 12 }}>{a.auctionId?.slice(0, 8)}…</td>
-      <td style={{ padding: '6px 8px' }}>{a.currentPrice?.amount} {a.currentPrice?.currency}</td>
-      <td style={{ padding: '6px 8px', fontSize: 12, color: '#0969da', fontWeight: 'bold' }}>{a.status}</td>
-      <td style={{ padding: '6px 8px', fontSize: 12 }}>{new Date(a.endTime).toLocaleString()}</td>
-    </tr>
+  const other = auctions.filter((a) =>
+    !['ACTIVE'].includes(a.status) &&
+    !((a.status === 'SOLD' || a.status === 'COMPLETED') && a.leadingBidderId === user?.userId)
   );
 
   return (
@@ -60,8 +69,8 @@ export default function BuyerDashboardPage() {
       {wallet && (
         <div style={{ background: '#f6f8fa', border: '1px solid #ddd', borderRadius: 8, padding: '16px 20px', marginBottom: 24, display: 'inline-block' }}>
           <span style={{ fontSize: 14, color: '#555' }}>Wallet Balance: </span>
-          <strong style={{ fontSize: 20 }}>€{wallet.balance} {wallet.currency}</strong>
-          {' '}<a href="/wallet" style={{ fontSize: 13 }}>Manage →</a>
+          <strong style={{ fontSize: 20 }}>€{wallet.balance}</strong>
+          {' '}<Link to="/wallet" style={{ fontSize: 13 }}>Manage →</Link>
         </div>
       )}
 
@@ -77,7 +86,7 @@ export default function BuyerDashboardPage() {
               <th style={{ padding: '6px 8px' }}>Ends</th>
             </tr>
           </thead>
-          <tbody>{active.map((a) => <AuctionRow key={a.auctionId} a={a} />)}</tbody>
+          <tbody>{active.map((a) => <AuctionRow key={a.auctionId} a={a} user={user} navigate={navigate} />)}</tbody>
         </table>
       )}
 
@@ -92,7 +101,7 @@ export default function BuyerDashboardPage() {
               <th style={{ padding: '6px 8px' }}>Ended</th>
             </tr>
           </thead>
-          <tbody>{won.map((a) => <SoldRow key={a.auctionId} a={a} />)}</tbody>
+          <tbody>{won.map((a) => <SoldRow key={a.auctionId} a={a} navigate={navigate} />)}</tbody>
         </table>
       )}
 
@@ -108,7 +117,7 @@ export default function BuyerDashboardPage() {
                 <th style={{ padding: '6px 8px' }}>Ended</th>
               </tr>
             </thead>
-            <tbody>{other.map((a) => <SoldRow key={a.auctionId} a={a} />)}</tbody>
+            <tbody>{other.map((a) => <SoldRow key={a.auctionId} a={a} navigate={navigate} />)}</tbody>
           </table>
         </>
       )}

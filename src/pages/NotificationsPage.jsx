@@ -19,19 +19,23 @@ const TYPE_LABEL = {
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState([]);
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [error, setError] = useState('');
 
   useEffect(() => {
     let cancelled = false;
-    api.get('/notifications/me')
+    api.get(`/notifications/me?page=${page}&size=20`)
       .then((data) => {
         if (cancelled) return;
-        const items = data?.content ?? data ?? [];
+        const items = Array.isArray(data?.content) ? data.content
+          : Array.isArray(data) ? data : [];
         setNotifications(items);
+        setTotalPages(data?.totalPages ?? 1);
       })
       .catch((err) => { if (!cancelled) setError(err.body?.message || err.message); });
     return () => { cancelled = true; };
-  }, []);
+  }, [page]);
 
   return (
     <div style={{ maxWidth: 640 }}>
@@ -54,9 +58,16 @@ export default function NotificationsPage() {
                   {n.createdAt ? new Date(n.createdAt).toLocaleString() : ''}
                 </span>
               </div>
-              <div style={{ fontSize: 14, color: '#333' }}>{n.message || JSON.stringify(n.vars ?? {})}</div>
+              <div style={{ fontSize: 14, color: '#333' }}>{n.subject || n.message || n.type}</div>
             </div>
           ))}
+        </div>
+      )}
+      {totalPages > 1 && (
+        <div style={{ display: 'flex', gap: 8, marginTop: 12, alignItems: 'center' }}>
+          <button disabled={page === 0} onClick={() => setPage((p) => p - 1)}>Prev</button>
+          <span style={{ fontSize: 13 }}>Page {page + 1} of {totalPages}</span>
+          <button disabled={page >= totalPages - 1} onClick={() => setPage((p) => p + 1)}>Next</button>
         </div>
       )}
     </div>

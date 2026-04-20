@@ -120,7 +120,7 @@ export default function SellerPage() {
       await api.put(`/auctions/listings/${editingAuction.listingId}`, {
         title: editForm.title,
         description: editForm.description,
-        photos: photos.length ? photos : undefined,
+        photos,
       });
       setMsg('Listing updated.');
       setEditingAuction(null);
@@ -238,7 +238,7 @@ export default function SellerPage() {
                 <td>{a.status}</td>
                 <td>{new Date(a.endTime).toLocaleString()}</td>
                 <td>
-                  {(a.status === 'ACTIVE' || a.status === 'ENDED') && (
+                  {(a.status === 'ENDED' || (a.status === 'ACTIVE' && a.bidCount === 0)) && (
                     <button onClick={() => startEdit(a)} style={{ fontSize: 12 }}>Edit</button>
                   )}
                 </td>

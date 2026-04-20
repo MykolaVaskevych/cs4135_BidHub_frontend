@@ -31,6 +31,11 @@ function SellerRoute({ children }) {
   return isSeller ? children : <Navigate to="/" />;
 }
 
+function BuyerRoute({ children }) {
+  const { user } = useAuth();
+  return user?.role === 'BUYER' ? children : <Navigate to="/" />;
+}
+
 export default function App() {
   return (
     <Routes>
@@ -47,7 +52,7 @@ export default function App() {
         <Route path="/categories" element={<ProtectedRoute><CategoriesPage /></ProtectedRoute>} />
         <Route path="/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
         <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
-        <Route path="/dashboard" element={<ProtectedRoute><BuyerDashboardPage /></ProtectedRoute>} />
+        <Route path="/dashboard" element={<BuyerRoute><BuyerDashboardPage /></BuyerRoute>} />
         <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
       </Route>
     </Routes>
