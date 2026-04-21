@@ -52,6 +52,10 @@ test.describe('Seller', () => {
     await page.getByRole('button', { name: /create listing/i }).click();
     await expect(page.getByText(/start auction for/i)).toBeVisible();
     await page.getByPlaceholder(/starting price/i).fill('100');
+    // remove HTML5 min so browser doesn't block submission
+    await page.evaluate(() => {
+      document.querySelectorAll('input[type="number"]').forEach((i) => i.removeAttribute('min'));
+    });
     await page.getByPlaceholder(/reserve price/i).fill('50');
     await page.getByRole('button', { name: /1d/i }).click();
     await page.getByRole('button', { name: /start auction/i }).click();
@@ -69,6 +73,10 @@ test.describe('Seller', () => {
     await expect(page.getByText(/start auction for/i)).toBeVisible();
     await page.getByPlaceholder(/starting price/i).fill('100');
     await page.getByPlaceholder(/reserve price/i).fill('100');
+    // remove HTML5 min so browser doesn't block submission
+    await page.evaluate(() => {
+      document.querySelectorAll('input[type="number"]').forEach((i) => i.removeAttribute('min'));
+    });
     await page.getByPlaceholder(/buy now price/i).fill('100'); // equal to starting, must be >
     await page.getByRole('button', { name: /1d/i }).click();
     await page.getByRole('button', { name: /start auction/i }).click();

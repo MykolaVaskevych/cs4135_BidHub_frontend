@@ -36,7 +36,8 @@ test.describe('Auctions list', () => {
     );
     await page.goto('/auctions');
     await expect(page.locator('tbody tr')).toHaveCount(1);
-    await page.getByPlaceholder(/search auctions/i).fill('nomatch');
+    // use exact placeholder to avoid matching the navbar search input
+    await page.getByPlaceholder('Search auctions...').fill('nomatch');
     await page.getByRole('button', { name: /^search$/i }).click();
     await expect(page.getByText('No active auctions found.')).toBeVisible();
   });
@@ -47,10 +48,10 @@ test.describe('Auction detail', () => {
     await setupAuctionDetailRoutes(page);
     await setupAccountRoutes(page);
     await page.goto(`/auctions/${AUCTION_ID}`);
-    await expect(page.getByText('Test Laptop')).toBeVisible();
-    await expect(page.getByText('100')).toBeVisible();
-    await expect(page.getByText('ACTIVE')).toBeVisible();
-    await expect(page.getByText('2')).toBeVisible(); // bid count
+    await expect(page.getByRole('heading', { name: 'Test Laptop' })).toBeVisible();
+    await expect(page.getByText('100').first()).toBeVisible();
+    await expect(page.getByText('ACTIVE').first()).toBeVisible();
+    await expect(page.getByText('2').first()).toBeVisible(); // bid count
   });
 
   test('time left countdown shown for ACTIVE auction', async ({ page, asBuyer }) => {
@@ -99,10 +100,9 @@ test.describe('Auction detail', () => {
     await page.goto(`/auctions/${AUCTION_ID}`);
     const bidInput = page.getByPlaceholder(/min €/i);
     await expect(bidInput).toBeVisible();
-    // submit the form bypassing min attribute by directly posting low amount
+    // remove HTML5 min constraint so browser doesn't block submission
     await page.evaluate(() => {
-      const input = document.querySelector<HTMLInputElement>('input[type="number"]');
-      if (input) { Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set?.call(input, '50'); input.dispatchEvent(new Event('input', { bubbles: true })); }
+      document.querySelectorAll('input[type="number"]').forEach((i) => i.removeAttribute('min'));
     });
     await bidInput.fill('50');
     await page.getByRole('button', { name: /place bid/i }).click();
@@ -168,16 +168,26 @@ test.describe('Auction detail', () => {
     await setupAuctionDetailRoutes(page, {}, bids);
     await setupAccountRoutes(page, undefined, []);
     await page.goto(`/auctions/${AUCTION_ID}`);
-    await expect(page.getByText(/bid history/i)).toBeVisible();
-    await expect(page.locator('tbody tr')).toHaveCount(2);
+    const bidHistorySection = page.locator('text=Bid History').locator('..');
+    await expect(bidHistorySection).toBeVisible();
+    await expect(bidHistorySection.locator('tbody tr')).toHaveCount(2);
   });
 });
 
 test.describe('Search page', () => {
+  const searchListing = {
+    listingId: 'llllllll-0000-0000-0000-000000000001',
+    title: 'Test Laptop',
+    currentPrice: 100,
+    currency: 'EUR',
+    status: 'ACTIVE',
+    endTime: '2099-01-01T00:00:00Z',
+  };
+
   test('renders results when ?q param present in URL', async ({ page, asBuyer }) => {
     await page.route('**/api/catalogue/categories', (r) => r.fulfill({ json: [] }));
     await page.route('**/api/catalogue/search**', (r) =>
-      r.fulfill({ json: { content: [baseAuction] } }),
+      r.fulfill({ json: { content: [searchListing] } }),
     );
     await page.goto('/search?q=laptop');
     await expect(page.locator('tbody tr')).toHaveCount(1);
@@ -190,7 +200,8 @@ test.describe('Search page', () => {
       r.fulfill({ json: { content: [] } }),
     );
     await page.goto('/auctions');
-    const navSearch = page.locator('nav input[type!="hidden"]').or(page.locator('nav input')).first();
+    // use the exact placeholder from Layout.jsx to avoid ambiguity
+    const navSearch = page.getByPlaceholder('Search auctions…');
     await navSearch.fill('laptop');
     await navSearch.press('Enter');
     await expect(page).toHaveURL(/\/search\?q=laptop/);

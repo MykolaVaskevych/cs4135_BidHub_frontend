@@ -40,7 +40,7 @@ test.describe('Notifications', () => {
   test('BID_OUTBID type shows correct label', async ({ page, asBuyer }) => {
     await setupNotificationRoutes(page, [sampleNotifications[0]]);
     await page.goto('/notifications');
-    await expect(page.getByText('Outbid')).toBeVisible();
+    await expect(page.locator('strong').filter({ hasText: /^Outbid$/ })).toBeVisible();
   });
 
   test('AUCTION_WON type shows Auction Won label', async ({ page, asBuyer }) => {

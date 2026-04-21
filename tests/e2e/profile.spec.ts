@@ -62,7 +62,7 @@ test.describe('Profile', () => {
     await setupAccountRoutes(page, undefined, [ADDRESS]);
     await page.goto('/profile');
     await expect(page.getByText('1 Main St')).toBeVisible();
-    await expect(page.getByText('Dublin')).toBeVisible();
+    await expect(page.locator('td').filter({ hasText: /^Dublin$/ }).first()).toBeVisible();
     await expect(page.getByText('D01AB12')).toBeVisible();
   });
 

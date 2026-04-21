@@ -13,14 +13,14 @@ test.describe('Wallet', () => {
   test('top up €10 shows success message', async ({ page, asBuyer }) => {
     await setupWalletRoutes(page, 100);
     await page.goto('/wallet');
-    await page.getByRole('button', { name: /\+ €10/i }).click();
+    await page.getByRole('button', { name: '+ €10', exact: true }).click();
     await expect(page.getByText('€10 added to your wallet.')).toBeVisible();
   });
 
   test('top up €50 shows correct message', async ({ page, asBuyer }) => {
     await setupWalletRoutes(page, 100);
     await page.goto('/wallet');
-    await page.getByRole('button', { name: /\+ €50/i }).click();
+    await page.getByRole('button', { name: '+ €50', exact: true }).click();
     await expect(page.getByText('€50 added to your wallet.')).toBeVisible();
   });
 

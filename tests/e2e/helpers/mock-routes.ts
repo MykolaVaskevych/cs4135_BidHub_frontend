@@ -65,7 +65,7 @@ export async function setupAuthRoutes(page: Page) {
   await page.route('**/api/auth/login', async (route) => {
     const body = route.request().postDataJSON();
     if (body.password === 'wrong') {
-      await route.fulfill({ status: 401, json: { message: 'Invalid credentials' } });
+      await route.fulfill({ status: 400, json: { message: 'Invalid credentials' } });
     } else {
       await route.fulfill({
         json: {
@@ -100,20 +100,17 @@ export async function setupAccountRoutes(
   profile: Record<string, unknown> = baseProfile,
   addresses: unknown[] = [],
 ) {
-  await page.route('**/api/accounts/me', async (route) => {
-    if (route.request().method() === 'PUT') {
-      const body = route.request().postDataJSON();
-      await route.fulfill({ json: { ...profile, ...body } });
-    } else {
-      await route.fulfill({ json: profile });
-    }
+  // wildcard registered first → lower priority (specific routes below override it)
+  await page.route('**/api/accounts/*', async (route) => {
+    await route.fulfill({ json: { firstName: 'Sam', lastName: 'Seller' } });
   });
 
-  await page.route('**/api/accounts/me/password', async (route) => {
-    const body = route.request().postDataJSON();
-    if (body.currentPassword === 'wrong') {
-      await route.fulfill({ status: 400, json: { message: 'Current password is incorrect' } });
-    } else {
+  await page.route('**/api/accounts/me/addresses/*/default', async (route) => {
+    await route.fulfill({ status: 204, body: '' });
+  });
+
+  await page.route('**/api/accounts/me/addresses/*', async (route) => {
+    if (route.request().method() === 'DELETE') {
       await route.fulfill({ status: 204, body: '' });
     }
   });
@@ -129,19 +126,23 @@ export async function setupAccountRoutes(
     }
   });
 
-  await page.route('**/api/accounts/me/addresses/*/default', async (route) => {
-    await route.fulfill({ status: 204, body: '' });
-  });
-
-  await page.route('**/api/accounts/me/addresses/*', async (route) => {
-    if (route.request().method() === 'DELETE') {
+  await page.route('**/api/accounts/me/password', async (route) => {
+    const body = route.request().postDataJSON();
+    if (body.currentPassword === 'wrong') {
+      await route.fulfill({ status: 400, json: { message: 'Current password is incorrect' } });
+    } else {
       await route.fulfill({ status: 204, body: '' });
     }
   });
 
-  // seller info lookup on auction detail
-  await page.route('**/api/accounts/*', async (route) => {
-    await route.fulfill({ json: { firstName: 'Sam', lastName: 'Seller' } });
+  // registered last → highest priority, wins over **/api/accounts/*
+  await page.route('**/api/accounts/me', async (route) => {
+    if (route.request().method() === 'PUT') {
+      const body = route.request().postDataJSON();
+      await route.fulfill({ json: { ...profile, ...body } });
+    } else {
+      await route.fulfill({ json: profile });
+    }
   });
 }
 
@@ -389,13 +390,9 @@ export async function setupAdminRoutes(page: Page) {
   await page.route('**/api/admin/reports', async (route) => {
     if (route.request().method() === 'GET') {
       await route.fulfill({
-        json: {
-          content: [
-            { reportId: 'r-1', reason: 'Spam', status: 'PENDING', targetId: 'u-buyer-1', createdAt: '2024-01-01T00:00:00Z' },
-          ],
-          totalElements: 1,
-          totalPages: 1,
-        },
+        json: [
+          { reportId: 'r-1', reason: 'Spam', status: 'PENDING', reportedUserId: 'u-buyer-1', createdAt: '2024-01-01T00:00:00Z' },
+        ],
       });
     } else {
       await route.fulfill({ status: 201, json: { reportId: 'r-new' } });

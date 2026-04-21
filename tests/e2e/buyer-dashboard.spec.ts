@@ -44,7 +44,7 @@ test.describe('Buyer Dashboard', () => {
   test('active bids section shows rows', async ({ page, asBuyer }) => {
     await setupDashboardRoutes(page, [activeAuction]);
     await page.goto('/dashboard');
-    await expect(page.getByText(/active bids/i)).toBeVisible();
+    await expect(page.getByRole('heading', { name: /active bids/i })).toBeVisible();
     await expect(page.locator('tbody tr').first()).toBeVisible();
   });
 

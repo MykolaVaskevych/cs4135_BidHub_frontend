@@ -33,7 +33,7 @@ test.describe('Delivery — Buyer', () => {
   test('delivery list loads with DELIVERED job showing action buttons', async ({ page, asBuyer }) => {
     await setupDeliveryRoutes(page, [deliveredJob]);
     await page.goto('/deliveries');
-    await expect(page.getByText('Delivered')).toBeVisible();
+    await expect(page.locator('td').filter({ hasText: /^Delivered$/ })).toBeVisible();
     await expect(page.getByRole('button', { name: /confirm receipt/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /dispute/i })).toBeVisible();
   });
