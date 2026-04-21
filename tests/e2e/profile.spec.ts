@@ -44,7 +44,7 @@ test.describe('Profile', () => {
     await page.getByPlaceholder(/current password/i).fill('wrong');
     await page.getByPlaceholder(/new password/i).fill('NewPass1!');
     await page.getByRole('button', { name: /^change$/i }).click();
-    await expect(page.locator('p[style*="red"]')).toContainText('Current password is incorrect');
+    await expect(page.getByRole('alert')).toContainText('Current password is incorrect');
   });
 
   test('add address shows success and address line', async ({ page, asBuyer }) => {

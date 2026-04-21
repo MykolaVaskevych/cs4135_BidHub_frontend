@@ -26,7 +26,7 @@ test.describe('Authentication', () => {
     await page.getByPlaceholder(/email/i).fill('buyer1@bidhub.local');
     await page.getByPlaceholder(/password/i).fill('wrong');
     await page.getByRole('button', { name: /^login$/i }).click();
-    await expect(page.locator('p[style*="red"]')).toContainText('Invalid credentials');
+    await expect(page.getByRole('alert')).toContainText('Invalid credentials');
   });
 
   test('login with empty email blocked by HTML5 validation', async ({ page }) => {
@@ -77,7 +77,7 @@ test.describe('Authentication', () => {
     await page.getByPlaceholder(/first name/i).fill('Test');
     await page.getByPlaceholder(/last name/i).fill('User');
     await page.getByRole('button', { name: /^register$/i }).click();
-    await expect(page.locator('p[style*="red"]')).toContainText('Email already in use');
+    await expect(page.getByRole('alert')).toContainText('Email already in use');
   });
 
   test('unauthenticated access to protected route redirects to /login', async ({ page }) => {
@@ -93,7 +93,9 @@ test.describe('Authentication', () => {
     await setupAuctionListRoutes(page, []);
     await setupCatalogueRoutes(page);
     await page.goto('/');
-    await page.getByRole('button', { name: /logout/i }).click();
+    // Logout sits inside the user menu dropdown in the header — open it first.
+    await page.getByRole('button', { name: /buyer1@bidhub\.local/i }).click();
+    await page.getByRole('button', { name: /log\s*out/i }).click();
     await expect(page).toHaveURL(/\/login/);
     const token = await page.evaluate(() => localStorage.getItem('token'));
     expect(token).toBeNull();

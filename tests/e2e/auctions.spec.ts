@@ -106,7 +106,7 @@ test.describe('Auction detail', () => {
     });
     await bidInput.fill('50');
     await page.getByRole('button', { name: /place bid/i }).click();
-    await expect(page.locator('p[style*="red"]')).toContainText('Bid amount must exceed current price');
+    await expect(page.getByRole('alert')).toContainText('Bid amount must exceed current price');
   });
 
   test('bid blocked without address shows warning', async ({ page, asBuyer }) => {

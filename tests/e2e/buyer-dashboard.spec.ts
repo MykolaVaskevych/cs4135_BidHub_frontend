@@ -53,9 +53,9 @@ test.describe('Buyer Dashboard', () => {
     await page.goto('/dashboard');
     const winningSpan = page.getByText('Winning');
     await expect(winningSpan).toBeVisible();
-    const color = await winningSpan.evaluate((el) => getComputedStyle(el).color);
-    // green in RGB
-    expect(color).toContain('0, 128');
+    // Verify green styling via the Tailwind utility class. Checking computed color
+    // directly is fragile across Tailwind versions (RGB vs OKLCH output).
+    await expect(winningSpan).toHaveClass(/\btext-green-\d+\b/);
   });
 
   test('outbid label shown for non-leading active bid', async ({ page, asBuyer }) => {
