@@ -32,53 +32,77 @@ export default function AuctionsPage() {
     return () => { cancelled = true; };
   }, [reloadKey]);
 
+  const statusClass = (status) => {
+    switch (status) {
+      case 'ACTIVE': return 'text-green-700';
+      case 'ENDED': return 'text-gray-500';
+      case 'CANCELLED': return 'text-red-600';
+      default: return 'text-gray-700';
+    }
+  };
+
   return (
     <div>
-      <h2>Auctions</h2>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      <h2 className="text-2xl font-bold mb-4">Auctions</h2>
 
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        <input placeholder="Search auctions..." value={query}
+      {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
+
+      <div className="flex gap-2 mb-5">
+        <input
+          placeholder="Search auctions..."
+          value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') doSearch(); }}
-          style={{ flex: 1 }} />
-        <button onClick={doSearch}>Search</button>
+          className="flex-1 px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:border-gray-500"
+        />
+        <button
+          onClick={doSearch}
+          className="px-4 py-2 text-sm font-medium text-white bg-gray-900 hover:bg-gray-800"
+        >
+          Search
+        </button>
       </div>
 
       {auctions.length === 0 ? (
-        <p>No active auctions found.</p>
+        <p className="text-sm text-gray-500">No active auctions found.</p>
       ) : (
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ borderBottom: '2px solid #ddd', textAlign: 'left' }}>
-              <th>Title</th>
-              <th>Current Price</th>
-              <th>Buy Now</th>
-              <th>Bids</th>
-              <th>Status</th>
-              <th>Ends</th>
-            </tr>
-          </thead>
-          <tbody>
-            {auctions.map((a) => {
-              const lst = listings[a.listingId];
-              return (
-                <tr key={a.auctionId}
-                  style={{ borderBottom: '1px solid #eee', cursor: 'pointer' }}
-                  onClick={() => navigate(`/auctions/${a.auctionId}`)}>
-                  <td>
-                    {lst?.title ?? <span style={{ color: '#aaa', fontFamily: 'monospace', fontSize: 12 }}>{a.auctionId.slice(0, 8)}…</span>}
-                  </td>
-                  <td>{a.currentPrice?.amount} {a.currentPrice?.currency}</td>
-                  <td>{a.buyNowPrice ? `${a.buyNowPrice.amount} ${a.buyNowPrice.currency}` : '-'}</td>
-                  <td>{a.bidCount}</td>
-                  <td>{a.status}</td>
-                  <td>{new Date(a.endTime).toLocaleString()}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <div className="border border-gray-200 overflow-x-auto">
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-200 text-left">
+                <th className="px-3 py-2 font-medium text-gray-700">Title</th>
+                <th className="px-3 py-2 font-medium text-gray-700">Current Price</th>
+                <th className="px-3 py-2 font-medium text-gray-700">Buy Now</th>
+                <th className="px-3 py-2 font-medium text-gray-700">Bids</th>
+                <th className="px-3 py-2 font-medium text-gray-700">Status</th>
+                <th className="px-3 py-2 font-medium text-gray-700">Ends</th>
+              </tr>
+            </thead>
+            <tbody>
+              {auctions.map((a) => {
+                const lst = listings[a.listingId];
+                return (
+                  <tr
+                    key={a.auctionId}
+                    onClick={() => navigate(`/auctions/${a.auctionId}`)}
+                    className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
+                  >
+                    <td className="px-3 py-2">
+                      {lst?.title ?? (
+                        <span className="font-mono text-xs text-gray-400">{a.auctionId.slice(0, 8)}…</span>
+                      )}
+                    </td>
+                    <td className="px-3 py-2">{a.currentPrice?.amount} {a.currentPrice?.currency}</td>
+                    <td className="px-3 py-2">{a.buyNowPrice ? `${a.buyNowPrice.amount} ${a.buyNowPrice.currency}` : '-'}</td>
+                    <td className="px-3 py-2">{a.bidCount}</td>
+                    <td className={`px-3 py-2 font-medium ${statusClass(a.status)}`}>{a.status}</td>
+                    <td className="px-3 py-2 text-gray-600">{new Date(a.endTime).toLocaleString()}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

@@ -35,56 +35,61 @@ export default function WalletPage() {
   };
 
   return (
-    <div style={{ maxWidth: 600 }}>
-      <h2>Wallet</h2>
-      {msg && <p style={{ color: 'green' }}>{msg}</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+    <div className="max-w-2xl">
+      <h2 className="text-2xl font-bold mb-4">Wallet</h2>
+      {msg && <p className="text-sm text-green-700 mb-3">{msg}</p>}
+      {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
 
-      <div style={{ background: '#f6f8fa', border: '1px solid #ddd', borderRadius: 8, padding: '20px 24px', marginBottom: 24 }}>
-        <div style={{ fontSize: 14, color: '#555', marginBottom: 4 }}>Available Balance</div>
-        <div style={{ fontSize: 32, fontWeight: 'bold' }}>
-          {wallet ? `€${wallet.balance}` : '—'}
+      <div className="bg-gray-50 border border-gray-200 px-6 py-5 mb-6">
+        <div className="text-sm text-gray-500 mb-1">Available Balance</div>
+        <div className="text-3xl font-bold text-gray-900">
+          {wallet ? `€${wallet.balance}` : '-'}
         </div>
       </div>
 
-      <h3>Top Up</h3>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 24, flexWrap: 'wrap' }}>
+      <h3 className="text-lg font-semibold mb-3">Top Up</h3>
+      <div className="flex gap-2 mb-6 flex-wrap">
         {TOP_UP_AMOUNTS.map((amt) => (
-          <button key={amt} onClick={() => handleTopUp(amt)} style={{ padding: '10px 20px', fontSize: 15 }}>
+          <button
+            key={amt}
+            onClick={() => handleTopUp(amt)}
+            className="px-5 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-300 hover:bg-gray-50"
+          >
             + €{amt}
           </button>
         ))}
       </div>
 
-      <h3>Transaction History</h3>
+      <h3 className="text-lg font-semibold mb-3">Transaction History</h3>
       {transactions.length === 0 ? (
-        <p style={{ color: '#888' }}>No transactions yet.</p>
+        <p className="text-sm text-gray-500">No transactions yet.</p>
       ) : (
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ borderBottom: '2px solid #ddd', textAlign: 'left' }}>
-              <th style={{ padding: '6px 8px' }}>Date</th>
-              <th style={{ padding: '6px 8px' }}>Type</th>
-              <th style={{ padding: '6px 8px' }}>Description</th>
-              <th style={{ padding: '6px 8px', textAlign: 'right' }}>Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            {transactions.map((tx) => (
-              <tr key={tx.transactionId} style={{ borderBottom: '1px solid #eee' }}>
-                <td style={{ padding: '6px 8px', fontSize: 12 }}>
-                  {tx.createdAt ? new Date(tx.createdAt).toLocaleDateString() : '—'}
-                </td>
-                <td style={{ padding: '6px 8px', fontSize: 13 }}>{tx.type}</td>
-                <td style={{ padding: '6px 8px', fontSize: 13, color: '#555' }}>{tx.description}</td>
-                <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 'bold',
-                  color: tx.amount >= 0 ? '#1a7f37' : '#c00' }}>
-                  {tx.amount >= 0 ? `+€${tx.amount}` : `-€${Math.abs(tx.amount)}`}
-                </td>
+        <div className="border border-gray-200 overflow-x-auto">
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-200 text-left">
+                <th className="px-3 py-2 font-medium text-gray-700">Date</th>
+                <th className="px-3 py-2 font-medium text-gray-700">Type</th>
+                <th className="px-3 py-2 font-medium text-gray-700">Description</th>
+                <th className="px-3 py-2 font-medium text-gray-700 text-right">Amount</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {transactions.map((tx) => (
+                <tr key={tx.transactionId} className="border-b border-gray-100">
+                  <td className="px-3 py-2 text-xs text-gray-600">
+                    {tx.createdAt ? new Date(tx.createdAt).toLocaleDateString() : '-'}
+                  </td>
+                  <td className="px-3 py-2">{tx.type}</td>
+                  <td className="px-3 py-2 text-gray-600">{tx.description}</td>
+                  <td className={`px-3 py-2 text-right font-semibold ${tx.amount >= 0 ? 'text-green-700' : 'text-red-600'}`}>
+                    {tx.amount >= 0 ? `+€${tx.amount}` : `-€${Math.abs(tx.amount)}`}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

@@ -55,7 +55,7 @@ export default function AdminCategoriesPage() {
   }, []);
 
   const handleDelete = useCallback(async (id) => {
-    if (!window.confirm('Permanently delete this category? This cannot be undone.')) return;
+    if (!globalThis.confirm('Permanently delete this category? This cannot be undone.')) return;
     setMsg(''); setError('');
     try {
       await api.del(`/admin/categories/${id}/hard`);
@@ -69,57 +69,81 @@ export default function AdminCategoriesPage() {
     setForm({ name: cat.name, description: cat.description || '' });
   };
 
+  const inputCls = 'px-3 py-1.5 text-sm border border-gray-300 focus:outline-none focus:border-gray-500';
+  const btnBase = 'px-2.5 py-1 text-xs font-medium border';
+  const btnPrimary = `${btnBase} text-white bg-gray-900 border-gray-900 hover:bg-gray-800`;
+  const btnSecondary = `${btnBase} text-gray-900 bg-white border-gray-300 hover:bg-gray-50`;
+  const btnDanger = `${btnBase} text-red-700 bg-white border-red-300 hover:bg-red-50`;
+
   return (
     <div>
-      <h2>Admin: Categories</h2>
-      {msg && <p style={{ color: 'green' }}>{msg}</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      <h3 className="text-lg font-semibold mb-3">Categories</h3>
+      {msg && <p className="text-sm text-green-700 mb-3">{msg}</p>}
+      {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        <input placeholder="Category name" value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-        <input placeholder="Description" value={form.description}
-          onChange={(e) => setForm({ ...form, description: e.target.value })} style={{ flex: 1 }} />
-        <button type="submit">{editId ? 'Update' : 'Create'}</button>
-        {editId && <button type="button" onClick={() => { setEditId(null); setForm({ name: '', description: '' }); }}>Cancel</button>}
+      <form onSubmit={handleSubmit} className="flex gap-2 mb-4 flex-wrap">
+        <input
+          placeholder="Category name"
+          value={form.name}
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
+          required
+          className={`${inputCls} w-48`}
+        />
+        <input
+          placeholder="Description"
+          value={form.description}
+          onChange={(e) => setForm({ ...form, description: e.target.value })}
+          className={`${inputCls} flex-1 min-w-[200px]`}
+        />
+        <button type="submit" className="px-4 py-1.5 text-sm font-medium text-white bg-gray-900 hover:bg-gray-800">
+          {editId ? 'Update' : 'Create'}
+        </button>
+        {editId && (
+          <button
+            type="button"
+            onClick={() => { setEditId(null); setForm({ name: '', description: '' }); }}
+            className="px-4 py-1.5 text-sm font-medium text-gray-900 bg-white border border-gray-300 hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+        )}
       </form>
 
       {categories.length === 0 ? (
-        <p>No categories yet.</p>
+        <p className="text-sm text-gray-500">No categories yet.</p>
       ) : (
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ borderBottom: '2px solid #ddd', textAlign: 'left' }}>
-              <th>Name</th>
-              <th>Description</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {categories.map((c) => (
-              <tr key={c.categoryId} style={{ borderBottom: '1px solid #eee', opacity: c.isActive ? 1 : 0.5 }}>
-                <td>{c.name}</td>
-                <td>{c.description}</td>
-                <td style={{ color: c.isActive ? 'green' : '#999', fontWeight: 'bold' }}>
-                  {c.isActive ? 'Active' : 'Inactive'}
-                </td>
-                <td style={{ display: 'flex', gap: 4 }}>
-                  <button onClick={() => startEdit(c)}>Edit</button>
-                  {c.isActive
-                    ? <button onClick={() => handleDeactivate(c.categoryId)}>Deactivate</button>
-                    : <button onClick={() => handleActivate(c.categoryId)}>Activate</button>
-                  }
-                  <button
-                    onClick={() => handleDelete(c.categoryId)}
-                    style={{ background: '#fee', color: '#c00', border: '1px solid #f88' }}>
-                    Delete
-                  </button>
-                </td>
+        <div className="border border-gray-200 overflow-x-auto">
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-200 text-left">
+                <th className="px-3 py-2 font-medium text-gray-700">Name</th>
+                <th className="px-3 py-2 font-medium text-gray-700">Description</th>
+                <th className="px-3 py-2 font-medium text-gray-700">Status</th>
+                <th className="px-3 py-2 font-medium text-gray-700">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {categories.map((c) => (
+                <tr key={c.categoryId} className={`border-b border-gray-100 ${c.isActive ? '' : 'opacity-50'}`}>
+                  <td className="px-3 py-2">{c.name}</td>
+                  <td className="px-3 py-2 text-gray-600">{c.description || <span className="text-gray-400">-</span>}</td>
+                  <td className={`px-3 py-2 font-medium ${c.isActive ? 'text-green-700' : 'text-gray-500'}`}>
+                    {c.isActive ? 'Active' : 'Inactive'}
+                  </td>
+                  <td className="px-3 py-2">
+                    <div className="flex gap-1.5 flex-wrap">
+                      <button onClick={() => startEdit(c)} className={btnSecondary}>Edit</button>
+                      {c.isActive
+                        ? <button onClick={() => handleDeactivate(c.categoryId)} className={btnSecondary}>Deactivate</button>
+                        : <button onClick={() => handleActivate(c.categoryId)} className={btnPrimary}>Activate</button>}
+                      <button onClick={() => handleDelete(c.categoryId)} className={btnDanger}>Delete</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

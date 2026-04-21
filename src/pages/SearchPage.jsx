@@ -13,8 +13,6 @@ export default function SearchPage() {
   const [error, setError] = useState('');
   const [reloadKey, setReloadKey] = useState(() => searchParams.get('q') ? 1 : 0);
 
-  // React "update during render" pattern — syncs query + triggers search when
-  // the navbar navigates to /search?q=... without going through an effect.
   const [seenUrlQ, setSeenUrlQ] = useState(() => searchParams.get('q') ?? '');
   const currentUrlQ = searchParams.get('q') ?? '';
   if (currentUrlQ !== seenUrlQ) {
@@ -48,23 +46,25 @@ export default function SearchPage() {
     return () => { cancelled = true; };
   }, [reloadKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const inputCls = 'px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:border-gray-500';
+
   return (
     <div>
-      <h2>Search Listings</h2>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      <h2 className="text-2xl font-bold mb-4">Search Listings</h2>
+      {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
 
-      <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+      <div className="flex gap-2 mb-2 flex-wrap">
         <input
           placeholder="Search listings..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') doSearch(); }}
-          style={{ flex: 2 }}
+          className={`${inputCls} flex-[2] min-w-[240px]`}
         />
         <select
           value={categoryId}
           onChange={(e) => setCategoryId(e.target.value)}
-          style={{ flex: 1 }}
+          className={`${inputCls} flex-1 min-w-[160px]`}
         >
           <option value="">All Categories</option>
           {categories.map((c) => (
@@ -73,47 +73,56 @@ export default function SearchPage() {
         </select>
       </div>
 
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+      <div className="flex gap-2 mb-5 flex-wrap">
         <input
           placeholder="Min Price"
           value={minPrice}
           onChange={(e) => setMinPrice(e.target.value)}
-          style={{ flex: 1 }}
           type="number"
+          className={`${inputCls} flex-1 min-w-[120px]`}
         />
         <input
           placeholder="Max Price"
           value={maxPrice}
           onChange={(e) => setMaxPrice(e.target.value)}
-          style={{ flex: 1 }}
           type="number"
+          className={`${inputCls} flex-1 min-w-[120px]`}
         />
-        <button onClick={doSearch}>Search</button>
+        <button
+          onClick={doSearch}
+          className="px-4 py-2 text-sm font-medium text-white bg-gray-900 hover:bg-gray-800"
+        >
+          Search
+        </button>
       </div>
 
       {listings.length === 0 ? (
-        <p>No listings found.</p>
+        <p className="text-sm text-gray-500">No listings found.</p>
       ) : (
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ borderBottom: '2px solid #ddd', textAlign: 'left' }}>
-              <th>Title</th>
-              <th>Current Price</th>
-              <th>Status</th>
-              <th>Ends</th>
-            </tr>
-          </thead>
-          <tbody>
-            {listings.map((l) => (
-              <tr key={l.listingId} style={{ borderBottom: '1px solid #eee' }}>
-                <td>{l.title}</td>
-                <td>{l.currentPrice} {l.currency}</td>
-                <td>{l.status}</td>
-                <td>{new Date(l.endTime).toLocaleString()}</td>
+        <div className="border border-gray-200 overflow-x-auto">
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-200 text-left">
+                <th className="px-3 py-2 font-medium text-gray-700">Title</th>
+                <th className="px-3 py-2 font-medium text-gray-700">Current Price</th>
+                <th className="px-3 py-2 font-medium text-gray-700">Status</th>
+                <th className="px-3 py-2 font-medium text-gray-700">Ends</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {listings.map((l) => (
+                <tr key={l.listingId} className="border-b border-gray-100 hover:bg-gray-50">
+                  <td className="px-3 py-2">{l.title}</td>
+                  <td className="px-3 py-2">{l.currentPrice} {l.currency}</td>
+                  <td className="px-3 py-2 text-gray-700">{l.status}</td>
+                  <td className="px-3 py-2 text-xs text-gray-600">
+                    {l.endTime ? new Date(l.endTime).toLocaleString() : '-'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

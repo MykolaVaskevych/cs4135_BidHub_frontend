@@ -28,19 +28,33 @@ export default function AdminReportsPage() {
     } catch (err) { setError(err.body?.message || err.message); }
   }, []);
 
+  const statusClass = (status) => {
+    switch (status) {
+      case 'PENDING': return 'text-amber-700';
+      case 'RESOLVED': return 'text-green-700';
+      case 'DISMISSED': return 'text-gray-500';
+      default: return 'text-gray-700';
+    }
+  };
+
+  const btnBase = 'px-2.5 py-1 text-xs font-medium border';
+  const btnPrimary = `${btnBase} text-white bg-gray-900 border-gray-900 hover:bg-gray-800`;
+  const btnSecondary = `${btnBase} text-gray-900 bg-white border-gray-300 hover:bg-gray-50`;
+  const inputCls = 'px-3 py-1.5 text-sm border border-gray-300 focus:outline-none focus:border-gray-500';
+
   return (
     <div>
-      <h2>Admin: Reports</h2>
-      <p style={{ fontSize: 13, color: '#555', marginBottom: 12 }}>
+      <h3 className="text-lg font-semibold mb-2">Reports</h3>
+      <p className="text-sm text-gray-600 mb-4">
         User-submitted complaints about other users or listings. Any logged-in user can submit a report
-        (e.g. from an auction page). <strong>Resolve</strong> to acknowledge; <strong>Dismiss</strong> to reject.
+        from an auction page. <strong>Resolve</strong> to acknowledge, <strong>Dismiss</strong> to reject.
         Only PENDING reports show action buttons.
       </p>
-      {msg && <p style={{ color: 'green' }}>{msg}</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {msg && <p className="text-sm text-green-700 mb-3">{msg}</p>}
+      {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
 
-      <div style={{ marginBottom: 16 }}>
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+      <div className="mb-4">
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className={inputCls}>
           <option value="">All statuses</option>
           <option value="PENDING">Pending</option>
           <option value="RESOLVED">Resolved</option>
@@ -49,40 +63,45 @@ export default function AdminReportsPage() {
       </div>
 
       {reports.length === 0 ? (
-        <p>No reports found.</p>
+        <p className="text-sm text-gray-500">No reports found.</p>
       ) : (
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ borderBottom: '2px solid #ddd', textAlign: 'left' }}>
-              <th>ID</th>
-              <th>Reported User</th>
-              <th>Reason</th>
-              <th>Status</th>
-              <th>Created</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {reports.map((r) => (
-              <tr key={r.reportId} style={{ borderBottom: '1px solid #eee' }}>
-                <td style={{ fontFamily: 'monospace', fontSize: 12 }}>{r.reportId?.slice(0, 8)}…</td>
-                <td style={{ fontFamily: 'monospace', fontSize: 12 }}>{r.reportedUserId?.slice(0, 8)}…</td>
-                <td>{r.reason}</td>
-                <td>{r.status}</td>
-                <td>{r.createdAt ? new Date(r.createdAt).toLocaleDateString() : '—'}</td>
-                <td style={{ display: 'flex', gap: 4 }}>
-                  {r.status === 'PENDING' && (
-                    <>
-                      <button onClick={() => action(r.reportId, 'resolve')}>Resolve</button>
-                      <button onClick={() => action(r.reportId, 'dismiss')}>Dismiss</button>
-                    </>
-                  )}
-                  {r.status !== 'PENDING' && <span style={{ color: '#999' }}>{r.status}</span>}
-                </td>
+        <div className="border border-gray-200 overflow-x-auto">
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-200 text-left">
+                <th className="px-3 py-2 font-medium text-gray-700">ID</th>
+                <th className="px-3 py-2 font-medium text-gray-700">Reported User</th>
+                <th className="px-3 py-2 font-medium text-gray-700">Reason</th>
+                <th className="px-3 py-2 font-medium text-gray-700">Status</th>
+                <th className="px-3 py-2 font-medium text-gray-700">Created</th>
+                <th className="px-3 py-2 font-medium text-gray-700">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {reports.map((r) => (
+                <tr key={r.reportId} className="border-b border-gray-100">
+                  <td className="px-3 py-2 font-mono text-xs">{r.reportId?.slice(0, 8)}…</td>
+                  <td className="px-3 py-2 font-mono text-xs">{r.reportedUserId?.slice(0, 8)}…</td>
+                  <td className="px-3 py-2">{r.reason}</td>
+                  <td className={`px-3 py-2 font-medium ${statusClass(r.status)}`}>{r.status}</td>
+                  <td className="px-3 py-2 text-xs text-gray-600">
+                    {r.createdAt ? new Date(r.createdAt).toLocaleDateString() : '-'}
+                  </td>
+                  <td className="px-3 py-2">
+                    {r.status === 'PENDING' ? (
+                      <div className="flex gap-1.5 flex-wrap">
+                        <button onClick={() => action(r.reportId, 'resolve')} className={btnPrimary}>Resolve</button>
+                        <button onClick={() => action(r.reportId, 'dismiss')} className={btnSecondary}>Dismiss</button>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-400">No actions</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

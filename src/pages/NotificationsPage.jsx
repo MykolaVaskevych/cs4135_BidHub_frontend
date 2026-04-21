@@ -28,8 +28,9 @@ export default function NotificationsPage() {
     api.get(`/notifications/me?page=${page}&size=20`)
       .then((data) => {
         if (cancelled) return;
-        const items = Array.isArray(data?.content) ? data.content
-          : Array.isArray(data) ? data : [];
+        let items = [];
+        if (Array.isArray(data?.content)) items = data.content;
+        else if (Array.isArray(data)) items = data;
         setNotifications(items);
         setTotalPages(data?.totalPages ?? 1);
       })
@@ -37,37 +38,36 @@ export default function NotificationsPage() {
     return () => { cancelled = true; };
   }, [page]);
 
+  const btnPager = 'px-3 py-1 text-sm font-medium border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed';
+
   return (
-    <div style={{ maxWidth: 640 }}>
-      <h2>Notifications</h2>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+    <div className="max-w-2xl">
+      <h2 className="text-2xl font-bold mb-4">Notifications</h2>
+      {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
+
       {notifications.length === 0 && !error ? (
-        <p style={{ color: '#888' }}>No notifications yet.</p>
+        <p className="text-sm text-gray-500">No notifications yet.</p>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div className="flex flex-col gap-2">
           {notifications.map((n) => (
-            <div key={n.notificationId} style={{
-              padding: '12px 16px',
-              border: '1px solid #ddd',
-              borderRadius: 6,
-              background: '#fafafa',
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                <strong style={{ fontSize: 13 }}>{TYPE_LABEL[n.type] ?? n.type}</strong>
-                <span style={{ fontSize: 12, color: '#888' }}>
+            <div key={n.notificationId} className="border border-gray-200 bg-white px-4 py-3">
+              <div className="flex justify-between items-baseline mb-1 gap-2">
+                <span className="text-sm font-semibold text-gray-900">{TYPE_LABEL[n.type] ?? n.type}</span>
+                <span className="text-xs text-gray-500 whitespace-nowrap">
                   {n.createdAt ? new Date(n.createdAt).toLocaleString() : ''}
                 </span>
               </div>
-              <div style={{ fontSize: 14, color: '#333' }}>{n.subject || n.message || n.type}</div>
+              <div className="text-sm text-gray-700">{n.subject || n.message || n.type}</div>
             </div>
           ))}
         </div>
       )}
+
       {totalPages > 1 && (
-        <div style={{ display: 'flex', gap: 8, marginTop: 12, alignItems: 'center' }}>
-          <button disabled={page === 0} onClick={() => setPage((p) => p - 1)}>Prev</button>
-          <span style={{ fontSize: 13 }}>Page {page + 1} of {totalPages}</span>
-          <button disabled={page >= totalPages - 1} onClick={() => setPage((p) => p + 1)}>Next</button>
+        <div className="flex gap-2 mt-4 items-center">
+          <button disabled={page === 0} onClick={() => setPage((p) => p - 1)} className={btnPager}>Prev</button>
+          <span className="text-sm text-gray-600">Page {page + 1} of {totalPages}</span>
+          <button disabled={page >= totalPages - 1} onClick={() => setPage((p) => p + 1)} className={btnPager}>Next</button>
         </div>
       )}
     </div>

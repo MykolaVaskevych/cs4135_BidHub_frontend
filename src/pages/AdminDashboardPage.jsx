@@ -13,8 +13,8 @@ export default function AdminDashboardPage() {
     return () => { cancelled = true; };
   }, []);
 
-  if (!summary && !error) return <p>Loading...</p>;
-  if (!summary) return <p style={{ color: 'red' }}>{error}</p>;
+  if (!summary && !error) return <p className="text-sm text-gray-500">Loading...</p>;
+  if (!summary) return <p className="text-sm text-red-600">{error}</p>;
 
   const rows = [
     ['Total Users', summary.totalUsers],
@@ -29,13 +29,13 @@ export default function AdminDashboardPage() {
 
   return (
     <div>
-      <h2>Admin Dashboard</h2>
-      <table style={{ borderCollapse: 'collapse', minWidth: 320 }}>
+      <h3 className="text-lg font-semibold mb-3">Summary</h3>
+      <table className="min-w-xs border-collapse">
         <tbody>
           {rows.map(([label, value]) => (
-            <tr key={label} style={{ borderBottom: '1px solid #eee' }}>
-              <td style={{ padding: '8px 16px 8px 0', color: '#555' }}>{label}</td>
-              <td style={{ padding: '8px 0', fontWeight: 'bold', fontSize: 18 }}>{value ?? '—'}</td>
+            <tr key={label} className="border-b border-gray-100">
+              <td className="pr-8 py-2 text-sm text-gray-500">{label}</td>
+              <td className="py-2 text-lg font-bold text-gray-900">{value ?? '-'}</td>
             </tr>
           ))}
         </tbody>

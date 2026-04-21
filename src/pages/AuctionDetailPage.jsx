@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { api } from '../api/client';
 import { useAuth } from '../context/useAuth';
 
@@ -18,11 +18,18 @@ export default function AuctionDetailPage() {
   const [msg, setMsg] = useState('');
   const [error, setError] = useState('');
   const [reloadKey, setReloadKey] = useState(0);
+  const [previewPhoto, setPreviewPhoto] = useState(null);
   const timerRef = useRef(null);
+
+  useEffect(() => {
+    if (!previewPhoto) return;
+    const onKey = (e) => { if (e.key === 'Escape') setPreviewPhoto(null); };
+    globalThis.addEventListener('keydown', onKey);
+    return () => globalThis.removeEventListener('keydown', onKey);
+  }, [previewPhoto]);
 
   const reload = () => setReloadKey((k) => k + 1);
 
-  // Poll every 3s after timer ends until the backend actually closes the auction
   useEffect(() => {
     if (timeLeft !== 'Ended' || auction?.status !== 'ACTIVE') return;
     const poll = setInterval(reload, 3000);
@@ -131,99 +138,139 @@ export default function AuctionDetailPage() {
     } catch (err) { setError(err.body?.detail || err.body?.message || err.message); }
   };
 
-  if (!auction && !error) return <p>Loading...</p>;
-  if (!auction) return <p style={{ color: 'red' }}>{error}</p>;
+  if (!auction && !error) return <p className="text-sm text-gray-500">Loading...</p>;
+  if (!auction) return <p className="text-sm text-red-600">{error}</p>;
 
   const isActive = auction.status === 'ACTIVE';
   const isBuyer = user?.role === 'BUYER';
   const isOwner = user?.userId === auction.sellerId;
+  const isEndingSoon = timeLeft && !timeLeft.includes('d') && timeLeft.includes('h');
+
+  const statusClass = (status) => {
+    switch (status) {
+      case 'ACTIVE': return 'text-green-700';
+      case 'ENDED': return 'text-gray-500';
+      case 'CANCELLED': return 'text-red-600';
+      default: return 'text-gray-700';
+    }
+  };
+
+  const btnBase = 'px-3 py-1.5 text-sm font-medium border';
+  const btnPrimary = `${btnBase} text-white bg-gray-900 border-gray-900 hover:bg-gray-800`;
+  const btnSecondary = `${btnBase} text-gray-900 bg-white border-gray-300 hover:bg-gray-50`;
+  const btnDanger = `${btnBase} text-red-700 bg-red-50 border-red-300 hover:bg-red-100`;
+  const btnSubtle = `${btnBase} text-gray-500 bg-white border-gray-300 hover:bg-gray-50 text-xs`;
+
+  const rowLabel = 'py-1.5 pr-4 text-sm text-gray-500 font-medium align-top w-40';
+  const rowValue = 'py-1.5 text-sm text-gray-900';
 
   return (
-    <div style={{ maxWidth: 640 }}>
-      <h2>{listing?.title || 'Auction Detail'}</h2>
-      {msg && <p style={{ color: 'green' }}>{msg}</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+    <div className="max-w-2xl">
+      <h2 className="text-2xl font-bold mb-2">{listing?.title || 'Auction Detail'}</h2>
+      {msg && <p className="text-sm text-green-700 mb-3">{msg}</p>}
+      {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
 
-      {listing?.description && <p>{listing.description}</p>}
+      {listing?.description && <p className="text-sm text-gray-700 mb-4">{listing.description}</p>}
 
       {listing?.photos?.length > 0 && (
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
+        <div className="flex gap-2 flex-wrap mb-4">
           {listing.photos.map((url, i) => (
-            <img key={i} src={url} alt="" style={{ width: 120, height: 90, objectFit: 'cover', borderRadius: 4, background: '#eee' }}
-              onError={(e) => { e.target.style.display = 'none'; }} />
+            <button
+              key={i}
+              type="button"
+              onClick={() => setPreviewPhoto(url)}
+              className="p-0 border-0 bg-transparent cursor-zoom-in"
+              aria-label="Preview photo"
+            >
+              <img
+                src={url}
+                alt=""
+                className="w-64 h-48 object-cover bg-gray-100 border border-gray-200 hover:opacity-90 transition-opacity"
+                onError={(e) => { e.target.style.display = 'none'; }}
+              />
+            </button>
           ))}
         </div>
       )}
 
-      <table style={{ marginBottom: 16 }}>
+      <table className="mb-4 w-full">
         <tbody>
-          <tr><td><strong>Seller</strong></td><td>{sellerName || '—'}</td></tr>
-          <tr><td><strong>Status</strong></td><td>{auction.status}</td></tr>
-          <tr><td><strong>Current Price</strong></td><td>{auction.currentPrice?.amount} {auction.currentPrice?.currency}</td></tr>
-          <tr><td><strong>Starting Price</strong></td><td>{auction.startingPrice?.amount} {auction.startingPrice?.currency}</td></tr>
-          {auction.buyNowPrice && <tr><td><strong>Buy Now</strong></td><td>{auction.buyNowPrice.amount} {auction.buyNowPrice.currency}</td></tr>}
-          <tr><td><strong>Bids</strong></td><td>{auction.bidCount}</td></tr>
+          <tr><td className={rowLabel}>Seller</td><td className={rowValue}>{sellerName || '-'}</td></tr>
+          <tr>
+            <td className={rowLabel}>Status</td>
+            <td className={`${rowValue} font-medium ${statusClass(auction.status)}`}>{auction.status}</td>
+          </tr>
+          <tr>
+            <td className={rowLabel}>Current Price</td>
+            <td className={`${rowValue} font-semibold`}>{auction.currentPrice?.amount} {auction.currentPrice?.currency}</td>
+          </tr>
+          <tr><td className={rowLabel}>Starting Price</td><td className={rowValue}>{auction.startingPrice?.amount} {auction.startingPrice?.currency}</td></tr>
+          {auction.buyNowPrice && (
+            <tr><td className={rowLabel}>Buy Now</td><td className={rowValue}>{auction.buyNowPrice.amount} {auction.buyNowPrice.currency}</td></tr>
+          )}
+          <tr><td className={rowLabel}>Bids</td><td className={rowValue}>{auction.bidCount}</td></tr>
           {auction.leadingBidderId && (
             <tr>
-              <td><strong>Current Winner</strong></td>
-              <td style={{ fontFamily: 'monospace', fontSize: 12 }}>
+              <td className={rowLabel}>Current Winner</td>
+              <td className={rowValue}>
                 {auction.leadingBidderId === user?.userId
-                  ? <span style={{ color: 'green', fontWeight: 'bold' }}>You are winning!</span>
-                  : <span>Someone else</span>}
+                  ? <span className="text-green-700 font-semibold">You are winning</span>
+                  : <span className="text-gray-600">Someone else</span>}
               </td>
             </tr>
           )}
-          <tr><td><strong>Ends</strong></td><td>{new Date(auction.endTime).toLocaleString()}</td></tr>
+          <tr><td className={rowLabel}>Ends</td><td className={`${rowValue} text-gray-600`}>{new Date(auction.endTime).toLocaleString()}</td></tr>
           {auction.status === 'ACTIVE' && timeLeft && (
             <tr>
-              <td><strong>Time Left</strong></td>
-              <td style={{ fontWeight: 'bold', color: timeLeft.includes('h') && !timeLeft.includes('d') ? '#c00' : 'inherit' }}>
-                {timeLeft}
-              </td>
+              <td className={rowLabel}>Time Left</td>
+              <td className={`${rowValue} font-semibold ${isEndingSoon ? 'text-red-600' : 'text-gray-900'}`}>{timeLeft}</td>
             </tr>
           )}
         </tbody>
       </table>
 
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+      <div className="flex gap-2 mb-4 flex-wrap">
         {isActive && (
-          <button onClick={handleWatchToggle}>
+          <button onClick={handleWatchToggle} className={btnSecondary}>
             {watched ? 'Remove from Watchlist' : 'Add to Watchlist'}
           </button>
         )}
         {isActive && isOwner && auction.bidCount === 0 && (
-          <button onClick={handleCancel} style={{ background: '#fee', color: '#c00' }}>Cancel Auction</button>
+          <button onClick={handleCancel} className={btnDanger}>Cancel Auction</button>
         )}
         {!isOwner && (
-          <button onClick={handleReport} style={{ background: 'none', color: '#888', fontSize: 12, border: '1px solid #ccc' }}>
-            Report Listing
-          </button>
+          <button onClick={handleReport} className={btnSubtle}>Report Listing</button>
         )}
       </div>
 
       {isActive && isBuyer && !hasAddress && (
-        <div style={{ padding: '12px 16px', background: '#fff8e1', border: '1px solid #f0c040', borderRadius: 6, marginBottom: 16 }}>
-          <strong>You need a delivery address to bid.</strong>
-          {' '}Go to <a href="/profile">Profile / Addresses</a> and add an address first.
+        <div className="p-3 mb-4 text-sm bg-amber-50 border border-amber-300 text-amber-900">
+          <strong>You need a delivery address to bid.</strong>{' '}
+          Go to <Link to="/profile" className="underline">Profile / Addresses</Link> and add one first.
         </div>
       )}
 
       {isActive && isBuyer && hasAddress && (
-        <div style={{ marginBottom: 16 }}>
-          <h3>Place a Bid</h3>
-          <small style={{ color: '#666', display: 'block', marginBottom: 8 }}>
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold mb-1">Place a Bid</h3>
+          <p className="text-xs text-gray-500 mb-2">
             Your bid must beat the current price. If the auction ends and your bid is the highest
             but below the reserve price, the item won't sell.
-          </small>
+          </p>
           {(() => {
             const minBid = ((auction.currentPrice?.amount ?? 0) * 1 + 0.01).toFixed(2);
             return (
-              <form onSubmit={handleBid} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <input type="number" step="0.01" min={minBid}
+              <form onSubmit={handleBid} className="flex gap-2 items-center flex-wrap">
+                <input
+                  type="number" step="0.01" min={minBid}
                   placeholder={`Min €${minBid}`}
-                  value={bidAmount} onChange={(e) => setBidAmount(e.target.value)} required />
-                <button type="submit">Place Bid</button>
-                <small style={{ color: '#888' }}>Must be &gt; €{auction.currentPrice?.amount}</small>
+                  value={bidAmount}
+                  onChange={(e) => setBidAmount(e.target.value)}
+                  required
+                  className="px-3 py-1.5 text-sm border border-gray-300 focus:outline-none focus:border-gray-500 w-40"
+                />
+                <button type="submit" className={btnPrimary}>Place Bid</button>
+                <span className="text-xs text-gray-500">Must be &gt; €{auction.currentPrice?.amount}</span>
               </form>
             );
           })()}
@@ -231,53 +278,72 @@ export default function AuctionDetailPage() {
       )}
 
       {isActive && isBuyer && hasAddress && auction.buyNowPrice && (
-        <div>
-          <h3>Buy Now</h3>
-          <p style={{ fontSize: 13, color: '#555' }}>
+        <div className="mb-6 p-3 border border-gray-200 bg-gray-50">
+          <h3 className="text-lg font-semibold mb-1">Buy Now</h3>
+          <p className="text-sm text-gray-600 mb-2">
             Skip the auction — pay the Buy Now price to win immediately. A delivery job will be
             created automatically once payment is confirmed.
           </p>
           {defaultAddress && (
-            <p style={{ fontSize: 12, color: '#666', margin: '0 0 8px' }}>
+            <p className="text-xs text-gray-600 mb-2">
               Delivering to: <strong>{defaultAddress.addressLine1}, {defaultAddress.city}, {defaultAddress.eircode}</strong>
-              {' '}(<a href="/profile">change</a>)
+              {' '}(<Link to="/profile" className="underline">change</Link>)
             </p>
           )}
-          <button onClick={handleBuyNow}>Buy Now — {auction.buyNowPrice.amount} {auction.buyNowPrice.currency}</button>
+          <button onClick={handleBuyNow} className={btnPrimary}>
+            Buy Now — {auction.buyNowPrice.amount} {auction.buyNowPrice.currency}
+          </button>
         </div>
       )}
 
       {bids.length > 0 && (
-        <div style={{ marginTop: 24 }}>
-          <h3>Bid History ({bids.length})</h3>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ borderBottom: '2px solid #ddd', textAlign: 'left' }}>
-                <th style={{ padding: '4px 8px' }}>#</th>
-                <th style={{ padding: '4px 8px' }}>Amount</th>
-                <th style={{ padding: '4px 8px' }}>Time</th>
-                <th style={{ padding: '4px 8px' }}>Winner</th>
-              </tr>
-            </thead>
-            <tbody>
-              {bids.map((b, i) => (
-                <tr key={b.bidId} style={{ borderBottom: '1px solid #eee' }}>
-                  <td style={{ padding: '4px 8px', fontSize: 12, color: '#888' }}>{i + 1}</td>
-                  <td style={{ padding: '4px 8px', fontWeight: b.isWinning ? 'bold' : 'normal' }}>
-                    {b.amount?.amount} {b.amount?.currency}
-                  </td>
-                  <td style={{ padding: '4px 8px', fontSize: 12, color: '#555' }}>
-                    {b.placedAt ? new Date(b.placedAt).toLocaleString() : '—'}
-                  </td>
-                  <td style={{ padding: '4px 8px', fontSize: 12 }}>
-                    {b.isWinning ? <span style={{ color: 'green' }}>★</span> : ''}
-                    {b.bidderId === user?.userId ? ' (you)' : ''}
-                  </td>
+        <div className="mt-6">
+          <h3 className="text-lg font-semibold mb-2">Bid History ({bids.length})</h3>
+          <div className="border border-gray-200 overflow-x-auto">
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-200 text-left">
+                  <th className="px-3 py-2 font-medium text-gray-700 w-12">#</th>
+                  <th className="px-3 py-2 font-medium text-gray-700">Amount</th>
+                  <th className="px-3 py-2 font-medium text-gray-700">Time</th>
+                  <th className="px-3 py-2 font-medium text-gray-700">Winner</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {bids.map((b, i) => (
+                  <tr key={b.bidId} className="border-b border-gray-100">
+                    <td className="px-3 py-2 text-xs text-gray-500">{i + 1}</td>
+                    <td className={`px-3 py-2 ${b.isWinning ? 'font-semibold' : ''}`}>
+                      {b.amount?.amount} {b.amount?.currency}
+                    </td>
+                    <td className="px-3 py-2 text-xs text-gray-600">
+                      {b.placedAt ? new Date(b.placedAt).toLocaleString() : '-'}
+                    </td>
+                    <td className="px-3 py-2 text-xs">
+                      {b.isWinning && <span className="text-green-700">★ winning</span>}
+                      {b.bidderId === user?.userId && <span className="text-gray-500"> (you)</span>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
+      )}
+
+      {previewPhoto && (
+        <button
+          type="button"
+          onClick={() => setPreviewPhoto(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 cursor-zoom-out border-0"
+          aria-label="Close preview"
+        >
+          <img
+            src={previewPhoto}
+            alt=""
+            className="max-w-full max-h-full object-contain"
+          />
+        </button>
       )}
     </div>
   );

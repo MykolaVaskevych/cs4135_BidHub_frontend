@@ -29,42 +29,64 @@ function nextStepHint(status, role) {
   return typeof entry === 'string' ? entry : (entry[role] ?? null);
 }
 
+function deliveryStatusClass(status) {
+  switch (status) {
+    case 'CONFIRMED': return 'text-green-700';
+    case 'IN_TRANSIT':
+    case 'COLLECTING': return 'text-blue-700';
+    case 'DELIVERED': return 'text-amber-700';
+    case 'DISPUTED': return 'text-red-600';
+    case 'CANCELLED': return 'text-gray-500';
+    default: return 'text-gray-700';
+  }
+}
+
+const btnBase = 'px-2.5 py-1 text-xs font-medium border';
+const btnPrimary = `${btnBase} text-white bg-gray-900 border-gray-900 hover:bg-gray-800`;
+const btnDanger = `${btnBase} text-red-700 bg-white border-red-300 hover:bg-red-50`;
+
 function JobTable({ jobs, onAction, role }) {
-  if (jobs.length === 0) return <p style={{ color: '#888' }}>None.</p>;
+  if (jobs.length === 0) return <p className="text-sm text-gray-500 mb-4">None.</p>;
   return (
-    <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 16 }}>
-      <thead>
-        <tr style={{ borderBottom: '2px solid #ddd', textAlign: 'left' }}>
-          <th>Job ID</th>
-          <th>Status</th>
-          <th>Next step</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {jobs.map((j) => (
-          <tr key={j.deliveryJobId} style={{ borderBottom: '1px solid #eee' }}>
-            <td style={{ fontFamily: 'monospace', fontSize: 12 }}>{j.deliveryJobId?.slice(0, 8)}…</td>
-            <td>{STATUS_LABEL[j.status] ?? j.status}</td>
-            <td style={{ fontSize: 12, color: '#555', maxWidth: 220 }}>{nextStepHint(j.status, role) ?? '—'}</td>
-            <td style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-              {role === 'DELIVERY_DRIVER' && j.status === 'IN_TRANSIT' && (
-                <button onClick={() => onAction(j.deliveryJobId, 'deliver')}>Mark Delivered</button>
-              )}
-              {role === 'SELLER' && j.status === 'ASSIGNED' && (
-                <button onClick={() => onAction(j.deliveryJobId, 'collect')}>Confirm Handover</button>
-              )}
-              {role === 'BUYER' && j.status === 'DELIVERED' && (
-                <>
-                  <button onClick={() => onAction(j.deliveryJobId, 'confirm')}>Confirm Receipt</button>
-                  <button onClick={() => onAction(j.deliveryJobId, 'dispute')} style={{ color: '#c00' }}>Dispute</button>
-                </>
-              )}
-            </td>
+    <div className="border border-gray-200 overflow-x-auto mb-6">
+      <table className="w-full text-sm border-collapse">
+        <thead>
+          <tr className="bg-gray-50 border-b border-gray-200 text-left">
+            <th className="px-3 py-2 font-medium text-gray-700">Job ID</th>
+            <th className="px-3 py-2 font-medium text-gray-700">Status</th>
+            <th className="px-3 py-2 font-medium text-gray-700">Next step</th>
+            <th className="px-3 py-2 font-medium text-gray-700">Actions</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {jobs.map((j) => (
+            <tr key={j.deliveryJobId} className="border-b border-gray-100">
+              <td className="px-3 py-2 font-mono text-xs">{j.deliveryJobId?.slice(0, 8)}…</td>
+              <td className={`px-3 py-2 font-medium ${deliveryStatusClass(j.status)}`}>
+                {STATUS_LABEL[j.status] ?? j.status}
+              </td>
+              <td className="px-3 py-2 text-xs text-gray-600 max-w-xs">{nextStepHint(j.status, role) ?? '-'}</td>
+              <td className="px-3 py-2">
+                <div className="flex gap-1.5 flex-wrap">
+                  {role === 'DELIVERY_DRIVER' && j.status === 'IN_TRANSIT' && (
+                    <button onClick={() => onAction(j.deliveryJobId, 'deliver')} className={btnPrimary}>Mark Delivered</button>
+                  )}
+                  {role === 'SELLER' && j.status === 'ASSIGNED' && (
+                    <button onClick={() => onAction(j.deliveryJobId, 'collect')} className={btnPrimary}>Confirm Handover</button>
+                  )}
+                  {role === 'BUYER' && j.status === 'DELIVERED' && (
+                    <>
+                      <button onClick={() => onAction(j.deliveryJobId, 'confirm')} className={btnPrimary}>Confirm Receipt</button>
+                      <button onClick={() => onAction(j.deliveryJobId, 'dispute')} className={btnDanger}>Dispute</button>
+                    </>
+                  )}
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
@@ -104,7 +126,7 @@ export default function DeliveryPage() {
       } else if (action === 'confirm') {
         await api.post(`/delivery/${jobId}/confirm`);
       } else if (action === 'dispute') {
-        const reason = window.prompt('Reason for dispute:');
+        const reason = globalThis.prompt('Reason for dispute:');
         if (!reason) return;
         await api.post(`/delivery/${jobId}/dispute`, { reason });
       }
@@ -124,46 +146,52 @@ export default function DeliveryPage() {
 
   return (
     <div>
-      <h2>Deliveries</h2>
-      {msg && <p style={{ color: 'green' }}>{msg}</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      <h2 className="text-2xl font-bold mb-4">Deliveries</h2>
+      {msg && <p className="text-sm text-green-700 mb-3">{msg}</p>}
+      {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
 
       {role === 'DELIVERY_DRIVER' && (
         <>
-          <h3>Available Jobs</h3>
-          {pendingJobs.length === 0 ? <p style={{ color: '#888' }}>No pending jobs available.</p> : (
-            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 16 }}>
-              <thead>
-                <tr style={{ borderBottom: '2px solid #ddd', textAlign: 'left' }}>
-                  <th>Job ID</th>
-                  <th>Pickup</th>
-                  <th>Delivery</th>
-                  <th>Escrow</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pendingJobs.map((j) => (
-                  <tr key={j.deliveryJobId} style={{ borderBottom: '1px solid #eee' }}>
-                    <td style={{ fontFamily: 'monospace', fontSize: 12 }}>{j.deliveryJobId?.slice(0, 8)}…</td>
-                    <td>{j.pickupAddress?.city ?? '—'}</td>
-                    <td>{j.deliveryAddress?.city ?? '—'}</td>
-                    <td>—</td>
-                    <td><button onClick={() => handleAssign(j.deliveryJobId)}>Assign to Me</button></td>
+          <h3 className="text-lg font-semibold mb-3">Available Jobs</h3>
+          {pendingJobs.length === 0 ? (
+            <p className="text-sm text-gray-500 mb-6">No pending jobs available.</p>
+          ) : (
+            <div className="border border-gray-200 overflow-x-auto mb-6">
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-200 text-left">
+                    <th className="px-3 py-2 font-medium text-gray-700">Job ID</th>
+                    <th className="px-3 py-2 font-medium text-gray-700">Pickup</th>
+                    <th className="px-3 py-2 font-medium text-gray-700">Delivery</th>
+                    <th className="px-3 py-2 font-medium text-gray-700">Escrow</th>
+                    <th className="px-3 py-2 font-medium text-gray-700">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {pendingJobs.map((j) => (
+                    <tr key={j.deliveryJobId} className="border-b border-gray-100">
+                      <td className="px-3 py-2 font-mono text-xs">{j.deliveryJobId?.slice(0, 8)}…</td>
+                      <td className="px-3 py-2">{j.pickupAddress?.city ?? '-'}</td>
+                      <td className="px-3 py-2">{j.deliveryAddress?.city ?? '-'}</td>
+                      <td className="px-3 py-2 text-gray-500">-</td>
+                      <td className="px-3 py-2">
+                        <button onClick={() => handleAssign(j.deliveryJobId)} className={btnPrimary}>Assign to Me</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
 
-          <h3>My Jobs</h3>
+          <h3 className="text-lg font-semibold mb-3">My Jobs</h3>
           <JobTable jobs={myJobs} onAction={handleAction} role={role} />
         </>
       )}
 
       {role !== 'DELIVERY_DRIVER' && (
         <>
-          <h3>My Deliveries</h3>
+          <h3 className="text-lg font-semibold mb-3">My Deliveries</h3>
           <JobTable jobs={myJobs} onAction={handleAction} role={role} />
         </>
       )}

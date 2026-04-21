@@ -26,41 +26,50 @@ export default function AdminDeliveriesPage() {
 
   return (
     <div>
-      <h3>Disputed Deliveries</h3>
-      <p style={{ fontSize: 13, color: '#555', marginBottom: 12 }}>
+      <h3 className="text-lg font-semibold mb-2">Disputed Deliveries</h3>
+      <p className="text-sm text-gray-600 mb-4">
         These delivery jobs have an active dispute raised by the buyer. Resolving moves the job
         to Confirmed and releases escrow to the seller.
       </p>
-      {msg && <p style={{ color: 'green' }}>{msg}</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {msg && <p className="text-sm text-green-700 mb-3">{msg}</p>}
+      {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
 
       {jobs.length === 0 ? (
-        <p style={{ color: '#888' }}>No disputed deliveries.</p>
+        <p className="text-sm text-gray-500">No disputed deliveries.</p>
       ) : (
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ borderBottom: '2px solid #ddd', textAlign: 'left' }}>
-              <th style={{ padding: '6px 8px' }}>Job ID</th>
-              <th style={{ padding: '6px 8px' }}>Buyer ID</th>
-              <th style={{ padding: '6px 8px' }}>Seller ID</th>
-              <th style={{ padding: '6px 8px' }}>Created</th>
-              <th style={{ padding: '6px 8px' }}>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {jobs.map((j) => (
-              <tr key={j.deliveryJobId} style={{ borderBottom: '1px solid #eee' }}>
-                <td style={{ padding: '6px 8px', fontFamily: 'monospace', fontSize: 12 }}>{j.deliveryJobId?.slice(0, 8)}…</td>
-                <td style={{ padding: '6px 8px', fontFamily: 'monospace', fontSize: 12 }}>{j.buyerId?.slice(0, 8)}…</td>
-                <td style={{ padding: '6px 8px', fontFamily: 'monospace', fontSize: 12 }}>{j.sellerId?.slice(0, 8)}…</td>
-                <td style={{ padding: '6px 8px', fontSize: 12 }}>{j.createdAt ? new Date(j.createdAt).toLocaleDateString() : '—'}</td>
-                <td style={{ padding: '6px 8px' }}>
-                  <button onClick={() => handleResolve(j.deliveryJobId)}>Resolve Dispute</button>
-                </td>
+        <div className="border border-gray-200 overflow-x-auto">
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-200 text-left">
+                <th className="px-3 py-2 font-medium text-gray-700">Job ID</th>
+                <th className="px-3 py-2 font-medium text-gray-700">Buyer ID</th>
+                <th className="px-3 py-2 font-medium text-gray-700">Seller ID</th>
+                <th className="px-3 py-2 font-medium text-gray-700">Created</th>
+                <th className="px-3 py-2 font-medium text-gray-700">Action</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {jobs.map((j) => (
+                <tr key={j.deliveryJobId} className="border-b border-gray-100">
+                  <td className="px-3 py-2 font-mono text-xs">{j.deliveryJobId?.slice(0, 8)}…</td>
+                  <td className="px-3 py-2 font-mono text-xs">{j.buyerId?.slice(0, 8)}…</td>
+                  <td className="px-3 py-2 font-mono text-xs">{j.sellerId?.slice(0, 8)}…</td>
+                  <td className="px-3 py-2 text-xs text-gray-600">
+                    {j.createdAt ? new Date(j.createdAt).toLocaleDateString() : '-'}
+                  </td>
+                  <td className="px-3 py-2">
+                    <button
+                      onClick={() => handleResolve(j.deliveryJobId)}
+                      className="px-2.5 py-1 text-xs font-medium text-white bg-gray-900 border border-gray-900 hover:bg-gray-800"
+                    >
+                      Resolve Dispute
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

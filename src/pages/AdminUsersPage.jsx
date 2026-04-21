@@ -45,68 +45,93 @@ export default function AdminUsersPage() {
     } catch (err) { setError(err.body?.message || err.message); }
   }, []);
 
+  const statusClass = (status) => {
+    switch (status) {
+      case 'ACTIVE': return 'text-green-700';
+      case 'SUSPENDED': return 'text-amber-700';
+      case 'BANNED': return 'text-red-600';
+      default: return 'text-gray-700';
+    }
+  };
+
+  const inputCls = 'px-3 py-1.5 text-sm border border-gray-300 focus:outline-none focus:border-gray-500';
+  const btnBase = 'px-2.5 py-1 text-xs font-medium border';
+  const btnPrimary = `${btnBase} text-white bg-gray-900 border-gray-900 hover:bg-gray-800`;
+  const btnSecondary = `${btnBase} text-gray-900 bg-white border-gray-300 hover:bg-gray-50`;
+  const btnDanger = `${btnBase} text-red-700 bg-white border-red-300 hover:bg-red-50`;
+  const btnPager = 'px-3 py-1 text-sm font-medium border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed';
+
   return (
     <div>
-      <h2>Admin: User Management</h2>
-      {msg && <p style={{ color: 'green' }}>{msg}</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      <h3 className="text-lg font-semibold mb-3">User Management</h3>
+      {msg && <p className="text-sm text-green-700 mb-3">{msg}</p>}
+      {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
 
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        <input placeholder="Search by email/name..." value={search}
+      <div className="flex gap-2 mb-4 flex-wrap">
+        <input
+          placeholder="Search by email / name…"
+          value={search}
           onChange={(e) => setSearch(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') { setPage(0); reload(); } }}
-          style={{ flex: 1 }} />
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+          className={`${inputCls} flex-1 min-w-[220px]`}
+        />
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className={inputCls}>
           <option value="">All statuses</option>
           <option value="ACTIVE">Active</option>
           <option value="SUSPENDED">Suspended</option>
           <option value="BANNED">Banned</option>
         </select>
-        <button onClick={() => { setPage(0); reload(); }}>Search</button>
+        <button onClick={() => { setPage(0); reload(); }} className="px-4 py-1.5 text-sm font-medium text-white bg-gray-900 hover:bg-gray-800">
+          Search
+        </button>
       </div>
 
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr style={{ borderBottom: '2px solid #ddd', textAlign: 'left' }}>
-            <th>Email</th>
-            <th>Name</th>
-            <th>Role</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((u) => (
-            <tr key={u.userId} style={{ borderBottom: '1px solid #eee' }}>
-              <td>{u.email}</td>
-              <td>{u.firstName} {u.lastName}</td>
-              <td>{u.role}</td>
-              <td>{u.status}</td>
-              <td style={{ display: 'flex', gap: 4 }}>
-                {u.status === 'ACTIVE' && (
-                  <>
-                    <button onClick={() => action(u.userId, 'suspend', 'Admin action')}>Suspend</button>
-                    <button onClick={() => action(u.userId, 'ban', 'Admin action')}>Ban</button>
-                  </>
-                )}
-                {u.status === 'SUSPENDED' && (
-                  <>
-                    <button onClick={() => action(u.userId, 'reactivate')}>Reactivate</button>
-                    <button onClick={() => action(u.userId, 'ban', 'Escalated')}>Ban</button>
-                  </>
-                )}
-                {u.status === 'BANNED' && <span style={{ color: '#999' }}>Banned</span>}
-              </td>
+      <div className="border border-gray-200 overflow-x-auto">
+        <table className="w-full text-sm border-collapse">
+          <thead>
+            <tr className="bg-gray-50 border-b border-gray-200 text-left">
+              <th className="px-3 py-2 font-medium text-gray-700">Email</th>
+              <th className="px-3 py-2 font-medium text-gray-700">Name</th>
+              <th className="px-3 py-2 font-medium text-gray-700">Role</th>
+              <th className="px-3 py-2 font-medium text-gray-700">Status</th>
+              <th className="px-3 py-2 font-medium text-gray-700">Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {users.map((u) => (
+              <tr key={u.userId} className="border-b border-gray-100">
+                <td className="px-3 py-2">{u.email}</td>
+                <td className="px-3 py-2">{u.firstName} {u.lastName}</td>
+                <td className="px-3 py-2 text-gray-600">{u.role}</td>
+                <td className={`px-3 py-2 font-medium ${statusClass(u.status)}`}>{u.status}</td>
+                <td className="px-3 py-2">
+                  <div className="flex gap-1.5 flex-wrap">
+                    {u.status === 'ACTIVE' && (
+                      <>
+                        <button onClick={() => action(u.userId, 'suspend', 'Admin action')} className={btnSecondary}>Suspend</button>
+                        <button onClick={() => action(u.userId, 'ban', 'Admin action')} className={btnDanger}>Ban</button>
+                      </>
+                    )}
+                    {u.status === 'SUSPENDED' && (
+                      <>
+                        <button onClick={() => action(u.userId, 'reactivate')} className={btnPrimary}>Reactivate</button>
+                        <button onClick={() => action(u.userId, 'ban', 'Escalated')} className={btnDanger}>Ban</button>
+                      </>
+                    )}
+                    {u.status === 'BANNED' && <span className="text-xs text-gray-400">No actions</span>}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {totalPages > 1 && (
-        <div style={{ marginTop: 12, display: 'flex', gap: 8, alignItems: 'center' }}>
-          <button disabled={page === 0} onClick={() => setPage(page - 1)}>Prev</button>
-          <span>Page {page + 1} / {totalPages}</span>
-          <button disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}>Next</button>
+        <div className="mt-3 flex gap-2 items-center">
+          <button disabled={page === 0} onClick={() => setPage(page - 1)} className={btnPager}>Prev</button>
+          <span className="text-sm text-gray-600">Page {page + 1} / {totalPages}</span>
+          <button disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)} className={btnPager}>Next</button>
         </div>
       )}
     </div>

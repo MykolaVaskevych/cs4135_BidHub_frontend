@@ -13,28 +13,31 @@ export default function AdminPage() {
 
   return (
     <div>
-      <h2 style={{ marginBottom: 8 }}>Admin</h2>
-      <div style={{ display: 'flex', gap: 0, borderBottom: '2px solid #ddd', marginBottom: 20 }}>
-        {TABS.map((t) => (
-          <button key={t} onClick={() => setTab(t)} style={{
-            padding: '8px 20px',
-            border: 'none',
-            borderBottom: tab === t ? '3px solid #333' : '3px solid transparent',
-            background: 'none',
-            cursor: 'pointer',
-            fontWeight: tab === t ? 'bold' : 'normal',
-            fontSize: 14,
-          }}>
-            {t}
-          </button>
-        ))}
+      <h2 className="text-2xl font-bold mb-2">Admin</h2>
+      <div className="flex border-b-2 border-gray-200 mb-5">
+        {TABS.map((t) => {
+          const active = tab === t;
+          return (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`px-5 py-2 text-sm bg-transparent border-0 cursor-pointer -mb-0.5 border-b-2 ${
+                active
+                  ? 'border-gray-900 font-semibold text-gray-900'
+                  : 'border-transparent text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              {t}
+            </button>
+          );
+        })}
       </div>
       {tab === 'Dashboard'  && <AdminDashboardPage />}
       {tab === 'Users'      && <AdminUsersPage />}
       {tab === 'Categories' && <AdminCategoriesPage />}
       {tab === 'Reports'    && <AdminReportsPage />}
-      {tab === 'Auctions'    && <AdminAuctionsPage />}
-      {tab === 'Deliveries'  && <AdminDeliveriesPage />}
+      {tab === 'Auctions'   && <AdminAuctionsPage />}
+      {tab === 'Deliveries' && <AdminDeliveriesPage />}
     </div>
   );
 }
