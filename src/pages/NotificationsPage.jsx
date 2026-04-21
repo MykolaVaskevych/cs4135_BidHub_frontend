@@ -43,7 +43,7 @@ export default function NotificationsPage() {
   return (
     <div className="max-w-2xl">
       <h2 className="text-2xl font-bold mb-4">Notifications</h2>
-      {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
+      {error && <p role="alert" className="text-sm text-red-600 mb-3">{error}</p>}
 
       {notifications.length === 0 && !error ? (
         <p className="text-sm text-gray-500">No notifications yet.</p>
@@ -52,7 +52,7 @@ export default function NotificationsPage() {
           {notifications.map((n) => (
             <div key={n.notificationId} className="border border-gray-200 bg-white px-4 py-3">
               <div className="flex justify-between items-baseline mb-1 gap-2">
-                <span className="text-sm font-semibold text-gray-900">{TYPE_LABEL[n.type] ?? n.type}</span>
+                <strong className="text-sm font-semibold text-gray-900">{TYPE_LABEL[n.type] ?? n.type}</strong>
                 <span className="text-xs text-gray-500 whitespace-nowrap">
                   {n.createdAt ? new Date(n.createdAt).toLocaleString() : ''}
                 </span>

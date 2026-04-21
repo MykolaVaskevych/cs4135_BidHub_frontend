@@ -38,7 +38,7 @@ export default function BuyerDashboardPage() {
   return (
     <div className="max-w-3xl">
       <h2 className="text-2xl font-bold mb-4">My Dashboard</h2>
-      {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
+      {error && <p role="alert" className="text-sm text-red-600 mb-3">{error}</p>}
 
       {wallet && (
         <div className="inline-block bg-gray-50 border border-gray-200 px-5 py-4 mb-6">

@@ -64,7 +64,7 @@ export default function SellerPage() {
         photos: photos.length ? photos : ['https://placehold.co/400x300'],
       });
       setCreatedListing(data);
-      setMsg('Listing created. Now set up the auction below.');
+      setMsg('Listing created! Now set up the auction below.');
     } catch (err) { setError(err.body?.message || err.message); }
   };
 
@@ -86,7 +86,7 @@ export default function SellerPage() {
       };
       if (buyNow !== null) body.buyNowPrice = buyNow;
       await api.post('/auctions', body);
-      setMsg('Auction started.');
+      setMsg('Auction started!');
       setCreatedListing(null);
       setListingForm({ title: '', description: '', categoryId: '', photos: '' });
       setAuctionForm({ startingPrice: '', reservePrice: '', buyNowPrice: '', durationMs: '', endPreview: '' });
@@ -142,17 +142,17 @@ export default function SellerPage() {
 
   const durationOptions = [
     { label: '40s (test)', ms: 40000, isTest: true },
-    { label: '1 day', ms: 86400000 },
-    { label: '3 days', ms: 3 * 86400000 },
-    { label: '5 days', ms: 5 * 86400000 },
-    { label: '7 days', ms: 7 * 86400000 },
+    { label: '1d', ms: 86400000 },
+    { label: '3d', ms: 3 * 86400000 },
+    { label: '5d', ms: 5 * 86400000 },
+    { label: '7d', ms: 7 * 86400000 },
   ];
 
   return (
     <div>
       <h2 className="text-2xl font-bold mb-4">My Listings</h2>
-      {msg && <p className="text-sm text-green-700 mb-3">{msg}</p>}
-      {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
+      {msg && <p role="status" className="text-sm text-green-700 mb-3">{msg}</p>}
+      {error && <p role="alert" className="text-sm text-red-600 mb-3">{error}</p>}
 
       {!createdListing ? (
         <section className="mb-8">

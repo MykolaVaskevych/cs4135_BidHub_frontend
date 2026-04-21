@@ -50,8 +50,8 @@ export default function AdminReportsPage() {
         from an auction page. <strong>Resolve</strong> to acknowledge, <strong>Dismiss</strong> to reject.
         Only PENDING reports show action buttons.
       </p>
-      {msg && <p className="text-sm text-green-700 mb-3">{msg}</p>}
-      {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
+      {msg && <p role="status" className="text-sm text-green-700 mb-3">{msg}</p>}
+      {error && <p role="alert" className="text-sm text-red-600 mb-3">{error}</p>}
 
       <div className="mb-4">
         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className={inputCls}>

@@ -47,8 +47,8 @@ export default function WatchlistPage() {
   return (
     <div>
       <h2 className="text-2xl font-bold mb-4">Watchlist</h2>
-      {msg && <p className="text-sm text-green-700 mb-3">{msg}</p>}
-      {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
+      {msg && <p role="status" className="text-sm text-green-700 mb-3">{msg}</p>}
+      {error && <p role="alert" className="text-sm text-red-600 mb-3">{error}</p>}
 
       {auctions.length === 0 ? (
         <p className="text-sm text-gray-500">Your watchlist is empty.</p>

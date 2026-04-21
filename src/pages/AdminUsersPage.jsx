@@ -64,8 +64,8 @@ export default function AdminUsersPage() {
   return (
     <div>
       <h3 className="text-lg font-semibold mb-3">User Management</h3>
-      {msg && <p className="text-sm text-green-700 mb-3">{msg}</p>}
-      {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
+      {msg && <p role="status" className="text-sm text-green-700 mb-3">{msg}</p>}
+      {error && <p role="alert" className="text-sm text-red-600 mb-3">{error}</p>}
 
       <div className="flex gap-2 mb-4 flex-wrap">
         <input

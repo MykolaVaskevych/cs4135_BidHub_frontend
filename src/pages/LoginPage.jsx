@@ -66,7 +66,7 @@ export default function LoginPage() {
     <div className="max-w-sm mx-auto mt-16">
       <h2 className="text-2xl font-bold mb-6">{isRegister ? 'Register' : 'Login'}</h2>
 
-      {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
+      {error && <p role="alert" className="text-sm text-red-600 mb-3">{error}</p>}
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <input type="email" placeholder="Email" value={form.email} onChange={set('email')} required className={inputClass} />

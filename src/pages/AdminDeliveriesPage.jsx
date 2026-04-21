@@ -31,8 +31,8 @@ export default function AdminDeliveriesPage() {
         These delivery jobs have an active dispute raised by the buyer. Resolving moves the job
         to Confirmed and releases escrow to the seller.
       </p>
-      {msg && <p className="text-sm text-green-700 mb-3">{msg}</p>}
-      {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
+      {msg && <p role="status" className="text-sm text-green-700 mb-3">{msg}</p>}
+      {error && <p role="alert" className="text-sm text-red-600 mb-3">{error}</p>}
 
       {jobs.length === 0 ? (
         <p className="text-sm text-gray-500">No disputed deliveries.</p>

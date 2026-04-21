@@ -37,8 +37,8 @@ export default function WalletPage() {
   return (
     <div className="max-w-2xl">
       <h2 className="text-2xl font-bold mb-4">Wallet</h2>
-      {msg && <p className="text-sm text-green-700 mb-3">{msg}</p>}
-      {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
+      {msg && <p role="status" className="text-sm text-green-700 mb-3">{msg}</p>}
+      {error && <p role="alert" className="text-sm text-red-600 mb-3">{error}</p>}
 
       <div className="bg-gray-50 border border-gray-200 px-6 py-5 mb-6">
         <div className="text-sm text-gray-500 mb-1">Available Balance</div>

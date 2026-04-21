@@ -51,7 +51,7 @@ export default function SearchPage() {
   return (
     <div>
       <h2 className="text-2xl font-bold mb-4">Search Listings</h2>
-      {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
+      {error && <p role="alert" className="text-sm text-red-600 mb-3">{error}</p>}
 
       <div className="flex gap-2 mb-2 flex-wrap">
         <input
