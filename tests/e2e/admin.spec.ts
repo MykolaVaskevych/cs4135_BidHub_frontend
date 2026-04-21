@@ -71,8 +71,8 @@ test.describe('Admin', () => {
       await setupAdminRoutes(page);
       await page.goto('/admin');
       await page.getByRole('button', { name: /reports/i }).click();
-      await expect(page.getByText('Spam')).toBeVisible();
-      await expect(page.getByText('PENDING')).toBeVisible();
+      await expect(page.locator('td').filter({ hasText: /^Spam$/ })).toBeVisible();
+      await expect(page.locator('td').filter({ hasText: /^PENDING$/ })).toBeVisible();
     });
 
     test('auctions tab shows auction rows', async ({ page, asAdmin }) => {

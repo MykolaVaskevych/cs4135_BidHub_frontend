@@ -15,9 +15,9 @@ test.describe('Profile', () => {
   test('profile page shows user data', async ({ page, asBuyer }) => {
     await setupAccountRoutes(page);
     await page.goto('/profile');
-    await expect(page.getByText('buyer1@bidhub.local')).toBeVisible();
-    await expect(page.getByText('BUYER')).toBeVisible();
-    await expect(page.getByText('ACTIVE')).toBeVisible();
+    await expect(page.locator('td').filter({ hasText: /^buyer1@bidhub\.local$/ })).toBeVisible();
+    await expect(page.locator('td').filter({ hasText: /^BUYER$/ })).toBeVisible();
+    await expect(page.locator('td').filter({ hasText: /^ACTIVE$/ })).toBeVisible();
   });
 
   test('update name shows success message', async ({ page, asBuyer }) => {
